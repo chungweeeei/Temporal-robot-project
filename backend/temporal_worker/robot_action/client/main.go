@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	actionworkflows "github.com/chungweeeei/robot/robot_action/workflows"
+	actionworkflows "github.com/chungweeeei/Temporal-robot-project/temporal_worker/robot_action/workflows"
 	"go.temporal.io/sdk/client"
 )
 
@@ -23,7 +23,7 @@ func main() {
 		TaskQueue: "ROBOT_TASK_QUEUE",
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), options, actionworkflows.RobotAction, actionworkflows.SitDown)
+	we, err := c.ExecuteWorkflow(context.Background(), options, actionworkflows.RobotAction, actionworkflows.StandUp)
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}

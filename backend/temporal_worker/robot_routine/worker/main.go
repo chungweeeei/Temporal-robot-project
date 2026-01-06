@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/chungweeeei/robot/robot_routine/workflows"
-	sharedactivities "github.com/chungweeeei/robot/shared_activities"
+	"github.com/chungweeeei/Temporal-robot-project/temporal_worker/robot_routine/workflows"
+	sharedactivities "github.com/chungweeeei/Temporal-robot-project/temporal_worker/shared_activities"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )

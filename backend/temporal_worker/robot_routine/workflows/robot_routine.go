@@ -3,7 +3,7 @@ package workflows
 import (
 	"time"
 
-	sharedactivities "github.com/chungweeeei/robot/shared_activities"
+	sharedactivities "github.com/chungweeeei/Temporal-robot-project/temporal_worker/shared_activities"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

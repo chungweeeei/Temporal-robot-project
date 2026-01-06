@@ -56,9 +56,3 @@ services:
     image: temporalio/ui:${TEMPORAL_UI_VERSION}
     ports:
       - 8080:8080
-
-  robot-action-worker:
-    container_name: robot-action-worker
-    depends_on:
-      - temporal
-    image: robot-action-image:latest

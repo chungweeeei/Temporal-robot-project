@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	actionworkflows "github.com/chungweeeei/robot/robot_action/workflows"
-	routineworkflows "github.com/chungweeeei/robot/robot_routine/workflows"
-	sharedactivities "github.com/chungweeeei/robot/shared_activities"
+	actionworkflows "github.com/chungweeeei/Temporal-robot-project/temporal_worker/robot_action/workflows"
+	routineworkflows "github.com/chungweeeei/Temporal-robot-project/temporal_worker/robot_routine/workflows"
+	sharedactivities "github.com/chungweeeei/Temporal-robot-project/temporal_worker/shared_activities"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
@@ -13,7 +13,7 @@ import (
 func main() {
 
 	c, err := client.Dial(client.Options{
-		HostPort: "temporal:7233",
+		HostPort: "localhost:7233",
 	})
 	if err != nil {
 		log.Fatalln("Unable to create Temporal client", err)

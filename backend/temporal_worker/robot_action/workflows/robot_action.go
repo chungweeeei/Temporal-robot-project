@@ -3,7 +3,7 @@ package workflows
 import (
 	"time"
 
-	sharedactivities "github.com/chungweeeei/robot/shared_activities"
+	sharedactivities "github.com/chungweeeei/Temporal-robot-project/temporal_worker/shared_activities"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -29,7 +29,7 @@ func RobotAction(ctx workflow.Context, action RobotActionType) (string, error) {
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	robotURL := "ws://10.8.140.130:9090"
+	robotURL := "ws://localhost:9090"
 	var ra *sharedactivities.RobotActivities
 	var result string
 	var err error

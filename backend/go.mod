@@ -1,8 +1,11 @@
-module github.com/chungweeeei/robot
+module github.com/chungweeeei/Temporal-robot-project
 
 go 1.25.5
 
-require github.com/gorilla/websocket v1.5.3
+require (
+	github.com/gorilla/websocket v1.5.3
+	go.temporal.io/sdk v1.38.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -18,7 +21,6 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	go.temporal.io/api v1.54.0 // indirect
-	go.temporal.io/sdk v1.38.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
