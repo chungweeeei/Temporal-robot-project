@@ -27,6 +27,10 @@ func (c *CachedConnection) WriteMessage(messageType int, data []byte) error {
 	return c.conn.WriteMessage(messageType, data)
 }
 
+func (c *CachedConnection) ReadMessage() (messageType int, p []byte, err error) {
+	return c.conn.ReadMessage()
+}
+
 func (c *CachedConnection) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()

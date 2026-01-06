@@ -11,8 +11,9 @@ import (
 type RobotActionType string
 
 const (
-	StandUp RobotActionType = "standup"
-	SitDown RobotActionType = "sitdown"
+	StandUp     RobotActionType = "standup"
+	SitDown     RobotActionType = "sitdown"
+	FetchStatus RobotActionType = "fetchstatus"
 )
 
 func RobotAction(ctx workflow.Context, action RobotActionType) (string, error) {
@@ -39,6 +40,8 @@ func RobotAction(ctx workflow.Context, action RobotActionType) (string, error) {
 		err = workflow.ExecuteActivity(ctx, ra.Standup, robotURL).Get(ctx, &result)
 	case SitDown:
 		err = workflow.ExecuteActivity(ctx, ra.Sitdown, robotURL).Get(ctx, &result)
+	case FetchStatus:
+		err = workflow.ExecuteActivity(ctx, ra.FetchStatus, robotURL).Get(ctx, &result)
 	default:
 		return "unknown behavior", nil
 	}

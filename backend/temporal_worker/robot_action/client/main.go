@@ -23,7 +23,7 @@ func main() {
 		TaskQueue: "ROBOT_TASK_QUEUE",
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), options, actionworkflows.RobotAction, actionworkflows.StandUp)
+	we, err := c.ExecuteWorkflow(context.Background(), options, actionworkflows.RobotAction, actionworkflows.FetchStatus)
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}
