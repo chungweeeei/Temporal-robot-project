@@ -4,21 +4,16 @@ import (
 	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-const WorkflowId = "robot_healthcheck_workflow"
-const TaskQueueName = "ROBOT_HEALTHCHECK_TASK_QUEUE"
+const WorkflowId = "robot_monitor_workflow"
+const TaskQueueName = "ROBOT_MONITOR_TASK_QUEUE"
 
-func HealthCheckWorkflow(ctx workflow.Context) error {
+func RobotMonitorWorkflow(ctx workflow.Context) error {
 
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 3 * time.Second,
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval: 1 * time.Second,
-			MaximumAttempts: 3,
-		},
+		StartToCloseTimeout: 10 * time.Minute,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -46,7 +41,7 @@ func HealthCheckWorkflow(ctx workflow.Context) error {
 
 		// 3. 休眠一段時間 (例如每 1 分鐘檢查一次)
 		// 使用 workflow.Sleep 非常高效，不會佔用 Worker 資源
-		workflow.Sleep(ctx, 1*time.Minute)
+		workflow.Sleep(ctx, 30*time.Second)
 	}
 
 }

@@ -23,7 +23,7 @@ func main() {
 
 	activities := activities.NewRobotActivities()
 	w.RegisterWorkflow(workflows.RobotActionWorkflow)
-	w.RegisterWorkflow(workflows.HealthCheckWorkflow)
+	w.RegisterWorkflow(workflows.RobotMonitorWorkflow)
 	w.RegisterActivity(activities)
 
 	// automatically trigger health check workflow

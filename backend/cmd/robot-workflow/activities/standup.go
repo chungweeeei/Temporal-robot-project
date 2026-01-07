@@ -3,6 +3,7 @@ package activities
 import (
 	"context"
 	"encoding/json"
+	"time"
 )
 
 func (ra *RobotActivities) Standup(ctx context.Context, url string) (string, error) {
@@ -21,6 +22,8 @@ func (ra *RobotActivities) Standup(ctx context.Context, url string) (string, err
 	if err != nil {
 		return "", err
 	}
+
+	time.Sleep(5 * time.Minute)
 
 	return response, nil
 }
