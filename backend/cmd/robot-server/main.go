@@ -47,6 +47,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", wsHandler)
-	log.Println("Mock Robot Server 啟動於 :9090/")
+	log.Println("Mock Robot Server started on :9090")
 	http.ListenAndServe(":9090", nil)
 }

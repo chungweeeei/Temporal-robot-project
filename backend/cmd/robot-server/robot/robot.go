@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 )
 
 type MockRobot struct {
@@ -26,18 +25,18 @@ func New() *MockRobot {
 	}
 
 	// Simulate battery drainage
-	go func() {
-		for {
-			r.mu.Lock()
-			if r.State.BatteryLevel > 1 {
-				r.State.BatteryLevel -= 1
-			}
-			r.mu.Unlock()
+	// go func() {
+	// 	for {
+	// 		r.mu.Lock()
+	// 		if r.State.BatteryLevel > 1 {
+	// 			r.State.BatteryLevel -= 1
+	// 		}
+	// 		r.mu.Unlock()
 
-			// Drain battery every 5 seconds
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	// 		// Drain battery every 5 seconds
+	// 		time.Sleep(10 * time.Second)
+	// 	}
+	// }()
 
 	return r
 }
@@ -71,6 +70,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 
 	switch args.ApiID {
 	case 1009:
+		fmt.Println("Receive fetch robot status request")
 		respData := RobotStateResponse{
 			ApiID:         args.ApiID,
 			CurrentAction: r.State.CurrentAction,
@@ -90,6 +90,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			Result: true,
 		}
 	case 1013:
+		fmt.Println("Receive execute robot motion request")
 		var motionArgs struct {
 			ApiID  int `json:"api_id"`
 			Action int `json:"action"`
@@ -132,6 +133,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			Result: true,
 		}
 	default:
+		fmt.Println("Receive unknown api_id request")
 		respData := BaseResponse{
 			ApiID: args.ApiID,
 			Status: StatusDetail{

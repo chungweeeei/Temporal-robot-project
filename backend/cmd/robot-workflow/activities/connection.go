@@ -1,4 +1,4 @@
-package sharedactivities
+package activities
 
 import (
 	"context"
@@ -14,6 +14,8 @@ type WSConnection interface {
 	WriteMessage(messageType int, data []byte) error
 	ReadMessage() (messageType int, p []byte, err error)
 	Close() error
+	// SetWriteDeadline(t time.Time) error
+	// SetReadDeadline(t time.Time) error
 }
 
 // WSDialer is an interface representing a WebSocket dialer.

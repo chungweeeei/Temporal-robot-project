@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	actionworkflows "github.com/chungweeeei/Temporal-robot-project/temporal_worker/robot_action/workflows"
+	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"go.temporal.io/sdk/client"
 )
 
@@ -13,7 +13,7 @@ func main() {
 		HostPort: "localhost:7233",
 	})
 	if err != nil {
-		log.Fatalln("Unable to create client", err)
+		log.Fatalln("Unable to create Temporal client", err)
 	}
 	defer c.Close()
 
@@ -23,7 +23,7 @@ func main() {
 		TaskQueue: "ROBOT_TASK_QUEUE",
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), options, actionworkflows.RobotAction, actionworkflows.FetchStatus)
+	we, err := c.ExecuteWorkflow(context.Background(), options, workflows.RobotActionWorkflow, workflows.StandUp)
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}
