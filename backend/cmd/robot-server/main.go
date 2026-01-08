@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-server/robot"
 	"github.com/gorilla/websocket"
@@ -21,16 +22,29 @@ var (
 	bot = robot.New()
 )
 
+type SafeConn struct {
+	conn *websocket.Conn
+	mu   sync.Mutex
+}
+
+func (c *SafeConn) WriteJSON(v interface{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn.WriteJSON(v)
+}
+
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 
-	conn, err := upgrader.Upgrade(w, r, nil)
+	rawConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
-	defer conn.Close()
+	defer rawConn.Close()
+
+	safeConn := &SafeConn{conn: rawConn}
 
 	for {
-		_, message, err := conn.ReadMessage()
+		_, message, err := rawConn.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -40,8 +54,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		response := bot.HandleRequest(request)
-		conn.WriteJSON(response)
+		go func(req robot.CallServiceRequest) {
+			response := bot.HandleRequest(req)
+
+			safeConn.WriteJSON(response)
+		}(request)
 	}
 }
 

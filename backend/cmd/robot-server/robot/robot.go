@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 )
 
 type MockRobot struct {
@@ -20,7 +21,7 @@ func New() *MockRobot {
 	r := &MockRobot{
 		State: RobotState{
 			CurrentAction: 2,
-			BatteryLevel:  100,
+			BatteryLevel:  30,
 		},
 	}
 
@@ -34,7 +35,7 @@ func New() *MockRobot {
 	// 		r.mu.Unlock()
 
 	// 		// Drain battery every 5 seconds
-	// 		time.Sleep(10 * time.Second)
+	// 		time.Sleep(5 * time.Second)
 	// 	}
 	// }()
 
@@ -44,8 +45,7 @@ func New() *MockRobot {
 // Handle Request
 func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceResponse {
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	fmt.Println("Receive Service Request:", request)
 
 	var args BaseRequestArgs
 	if err := json.Unmarshal([]byte(request.Args.Data), &args); err != nil {
@@ -70,11 +70,15 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 
 	switch args.ApiID {
 	case 1009:
-		fmt.Println("Receive fetch robot status request")
+		r.mu.Lock()
+		currentAction := r.State.CurrentAction
+		currentBattery := r.State.BatteryLevel
+		r.mu.Unlock()
+
 		respData := RobotStateResponse{
 			ApiID:         args.ApiID,
-			CurrentAction: r.State.CurrentAction,
-			BatteryLevel:  r.State.BatteryLevel,
+			CurrentAction: currentAction,
+			BatteryLevel:  currentBattery,
 			Status: StatusDetail{
 				Code:    0,
 				Message: "Success",
@@ -90,7 +94,6 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			Result: true,
 		}
 	case 1013:
-		fmt.Println("Receive execute robot motion request")
 		var motionArgs struct {
 			ApiID  int `json:"api_id"`
 			Action int `json:"action"`
@@ -113,8 +116,18 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 				Result: false,
 			}
 		}
+		// Assume motion need 30 seconds to complete
+		switch motionArgs.Action {
+		case 3:
+			time.Sleep(30 * time.Second)
+		case 4:
+			time.Sleep(5 * time.Second)
+		}
+
 		// Update robot state based on action
+		r.mu.Lock()
 		r.State.CurrentAction = motionArgs.Action
+		r.mu.Unlock()
 
 		respData := BaseResponse{
 			ApiID: args.ApiID,

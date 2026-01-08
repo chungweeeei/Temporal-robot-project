@@ -1,8 +1,8 @@
 package activities
 
 const (
-	RobotStatus        = 1009
-	RobotMotionControl = 1013
+	RobotStatusID        = 1009
+	RobotMotionControlID = 1013
 )
 
 const (

@@ -7,9 +7,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-const WorkflowId = "robot_monitor_workflow"
-const TaskQueueName = "ROBOT_MONITOR_TASK_QUEUE"
-
 func RobotMonitorWorkflow(ctx workflow.Context) error {
 
 	ao := workflow.ActivityOptions{
@@ -23,24 +20,30 @@ func RobotMonitorWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 
 	for {
-		var result string
-		// 1. 執行 Activity 查詢狀態
-		err := workflow.ExecuteActivity(ctx, ra.GetStatus, robotURL).Get(ctx, &result)
+		var status activities.RobotStatus
+		// 1. Execute Activity to get robot status
+		err := workflow.ExecuteActivity(ctx, ra.GetStatus, robotURL).Get(ctx, &status)
 		if err != nil {
 			logger.Error("Health check failed in this cycle", "error", err)
 		} else {
-			// 2. 檢查狀態邏輯 (例如：電量過低發警報)
-			logger.Info("Receive result", result)
-			// if err := json.Unmarshal([]byte(result), &state); err == nil {
-			// 	if state.BatteryLevel < 20 {
-			// 		logger.Warn("Low battery detected!", "level", state.BatteryLevel)
-			// 		// 這裡可以觸發其他的 Notification Activity...
-			// 	}
-			// }
+			// 2. Check status logic (e.g., alert if battery is low)
+			if status.BatteryLevel < 50 {
+				logger.Warn("Low battery detected!", "level", status.BatteryLevel)
+				// This is where you can trigger other Notification Activities...
+				targetWorkflowID := "robot_action_workflow_001"
+				signalName := "low-battery-signal"
+
+				signalFuture := workflow.SignalExternalWorkflow(ctx, targetWorkflowID, "", signalName, status.BatteryLevel)
+				if err := signalFuture.Get(ctx, nil); err != nil {
+					logger.Error("Failed to send signal to external workflow", "targetID", targetWorkflowID, "error", err)
+				} else {
+					logger.Info("Signal sent successfully", "targetID", targetWorkflowID)
+				}
+			}
 		}
 
-		// 3. 休眠一段時間 (例如每 1 分鐘檢查一次)
-		// 使用 workflow.Sleep 非常高效，不會佔用 Worker 資源
+		// 3. Sleep for a while (e.g., check every 1 minute)
+		// Using workflow.Sleep is very efficient and does not occupy Worker resources
 		workflow.Sleep(ctx, 30*time.Second)
 	}
 
