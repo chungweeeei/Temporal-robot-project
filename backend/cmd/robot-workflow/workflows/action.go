@@ -13,9 +13,15 @@ type RobotActionType string
 const (
 	StandUp RobotActionType = "standup"
 	SitDown RobotActionType = "sitdown"
+	Move    RobotActionType = "move"
 )
 
-func RobotActionWorkflow(ctx workflow.Context, action RobotActionType) (string, error) {
+type RobotWorkflowRequest struct {
+	Action     RobotActionType         `json:"action"`
+	MoveTarget *activities.MoveRequest `json:"move_target,omitempty"`
+}
+
+func RobotActionWorkflow(ctx workflow.Context, req RobotWorkflowRequest) (string, error) {
 
 	logger := workflow.GetLogger(ctx)
 
@@ -53,9 +59,15 @@ func RobotActionWorkflow(ctx workflow.Context, action RobotActionType) (string, 
 
 	// 3. 執行 Activity (注意這裡使用的是 childCtx)
 	// 如果上面的協程執行了 cancel()，這裡會立即收到 CanceledError
-	switch action {
+	switch req.Action {
 	case StandUp:
 		future := workflow.ExecuteActivity(childCtx, ra.Standup, robotURL)
+		err = future.Get(ctx, &result)
+	case SitDown:
+		future := workflow.ExecuteActivity(childCtx, ra.Sitdown, robotURL)
+		err = future.Get(ctx, &result)
+	case Move:
+		future := workflow.ExecuteActivity(childCtx, ra.Move, robotURL, *req.MoveTarget)
 		err = future.Get(ctx, &result)
 	default:
 		return "unknown behavior", nil

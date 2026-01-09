@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"go.temporal.io/sdk/client"
 )
@@ -23,7 +24,7 @@ func main() {
 		TaskQueue: "ROBOT_TASK_QUEUE",
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), options, workflows.RobotActionWorkflow, workflows.StandUp)
+	we, err := c.ExecuteWorkflow(context.Background(), options, workflows.RobotActionWorkflow, workflows.RobotWorkflowRequest{Action: workflows.Move, MoveTarget: &activities.MoveRequest{X: 10.0, Y: 10.0, Orientation: 0.0}})
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}

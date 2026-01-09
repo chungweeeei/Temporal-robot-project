@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"log/slog"
 	"os"
@@ -38,19 +37,19 @@ func main() {
 	w.RegisterWorkflow(workflows.RobotMonitorWorkflow)
 	w.RegisterActivity(activities)
 
-	// Automatically start the monitor Workflow
-	go func() {
-		workflowOptions := client.StartWorkflowOptions{
-			ID:        "robot_monitor_workflow",
-			TaskQueue: "ROBOT_TASK_QUEUE",
-		}
-		we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.RobotMonitorWorkflow)
-		if err != nil {
-			log.Printf("Unable to execute workflow (might be already running): %v", err)
-		} else {
-			log.Printf("Started workflow WorkflowID: %s RunID: %s", we.GetID(), we.GetRunID())
-		}
-	}()
+	// // Automatically start the monitor Workflow
+	// go func() {
+	// 	workflowOptions := client.StartWorkflowOptions{
+	// 		ID:        "robot_monitor_workflow",
+	// 		TaskQueue: "ROBOT_TASK_QUEUE",
+	// 	}
+	// 	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.RobotMonitorWorkflow)
+	// 	if err != nil {
+	// 		log.Printf("Unable to execute workflow (might be already running): %v", err)
+	// 	} else {
+	// 		log.Printf("Started workflow WorkflowID: %s RunID: %s", we.GetID(), we.GetRunID())
+	// 	}
+	// }()
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

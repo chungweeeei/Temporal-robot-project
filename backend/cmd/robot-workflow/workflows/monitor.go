@@ -1,6 +1,8 @@
 package workflows
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
@@ -10,11 +12,15 @@ import (
 func RobotMonitorWorkflow(ctx workflow.Context) error {
 
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Minute,
+		StartToCloseTimeout: 1 * time.Minute,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	robotURL := "ws://localhost:9090"
+	robotIP := os.Getenv("ROBOT_IP")
+	if robotIP == "" {
+		robotIP = "127.0.0.1"
+	}
+	robotURL := fmt.Sprintf("ws://%s:9090", robotIP)
 	var ra *activities.RobotActivities
 
 	logger := workflow.GetLogger(ctx)

@@ -36,5 +36,8 @@ type RobotStateResponse struct {
 	ApiID         int          `json:"api_id"`
 	CurrentAction int          `json:"current_action"`
 	BatteryLevel  int          `json:"battery_level"`
+	X             float64      `json:"x"`
+	Y             float64      `json:"y"`
+	IsMoving      bool         `json:"is_moving"`
 	Status        StatusDetail `json:"status"`
 }
