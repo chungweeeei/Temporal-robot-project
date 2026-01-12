@@ -1,4 +1,4 @@
-export type ActivityType = 'StandUp' | 'SitDown' | 'Move' | 'Sleep' | 'Start' | 'End' | 'Condition';
+export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End' | 'Condition';
 
 export interface RetryPolicy {
   maxAttempts: number;

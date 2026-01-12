@@ -33,8 +33,8 @@ func main() {
 	w := worker.New(c, "ROBOT_TASK_QUEUE", worker.Options{})
 
 	activities := activities.NewRobotActivities()
-	w.RegisterWorkflow(workflows.RobotActionWorkflow)
-	w.RegisterWorkflow(workflows.RobotMonitorWorkflow)
+	w.RegisterWorkflow(workflows.RobotWorkflow)
+	// w.RegisterWorkflow(workflows.RobotMonitorWorkflow)
 	w.RegisterActivity(activities)
 
 	// // Automatically start the monitor Workflow

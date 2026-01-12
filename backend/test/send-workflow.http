@@ -1,0 +1,55 @@
+POST http://localhost:3000/v1/workflows
+Content-Type: application/json
+
+{
+  "workflowId": "ee86e776-d6c5-49f2-92b6-e9f30ec392ef",
+  "rootNodeId": "start",
+  "nodes": {
+    "start": {
+      "id": "start",
+      "type": "Start",
+      "params": {},
+      "transitions": {
+        "next": "1768210592808"
+      }
+    },
+    "end": {
+      "id": "end",
+      "type": "End",
+      "params": {},
+      "transitions": {}
+    },
+    "1768210592808": {
+      "id": "1768210592808",
+      "type": "Move",
+      "params": {
+        "x": 0,
+        "y": 0
+      },
+      "transitions": {
+        "next": "1768210602113",
+        "failure": "1768210604827"
+      },
+      "retryPolicy": {
+        "maxAttempts": 1,
+        "initialInterval": 1000
+      }
+    },
+    "1768210602113": {
+      "id": "1768210602113",
+      "type": "Standup",
+      "params": {},
+      "transitions": {
+        "next": "end"
+      }
+    },
+    "1768210604827": {
+      "id": "1768210604827",
+      "type": "Sitdown",
+      "params": {},
+      "transitions": {
+        "next": "end"
+      }
+    }
+  }
+}

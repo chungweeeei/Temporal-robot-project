@@ -18,43 +18,30 @@ type RobotStatus struct {
 	} `json:"status"`
 }
 
-func (ra *RobotActivities) GetStatus(ctx context.Context, url string) (RobotStatus, error) {
+func (ra *RobotActivities) GetStatus(ctx context.Context) (RobotStatus, error) {
 
-	errorChan := make(chan error)
-	responseChan := make(chan RobotStatus)
+	return executeWithHeartbeat(ctx, func() (RobotStatus, error) {
 
-	go func() {
 		data := map[string]int{
 			"api_id": RobotStatusID,
 		}
+
 		dataBytes, err := json.Marshal(data)
 		if err != nil {
-			errorChan <- err
-			return
+			return RobotStatus{}, err
 		}
 
-		response, err := ra.Client.CallService(ctx, url, string(dataBytes))
+		responseStr, err := ra.Client.CallService(ctx, string(dataBytes))
 		if err != nil {
-			errorChan <- err
-			return
+			return RobotStatus{}, err
 		}
+
 		var status RobotStatus
-		err = json.Unmarshal([]byte(response), &status)
+		err = json.Unmarshal([]byte(responseStr), &status)
 		if err != nil {
-			errorChan <- err
-			return
+			return RobotStatus{}, err
 		}
 
-		responseChan <- status
-	}()
-
-	select {
-	case err := <-errorChan:
-		return RobotStatus{}, err
-	case status := <-responseChan:
 		return status, nil
-	case <-ctx.Done():
-		return RobotStatus{}, ctx.Err()
-	}
-
+	})
 }

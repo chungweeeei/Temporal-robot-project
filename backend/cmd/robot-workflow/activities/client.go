@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const RobotServiceURL = "ws://localhost:9090"
+
 type RobotClient struct {
 	Dialer WSDialer
 }
@@ -19,8 +21,8 @@ func NewRobotClient() *RobotClient {
 	}
 }
 
-func (r *RobotClient) CallService(ctx context.Context, url string, payload string) (string, error) {
-	conn, _, err := r.Dialer.DialContext(ctx, url, nil)
+func (r *RobotClient) CallService(ctx context.Context, data string) (string, error) {
+	conn, _, err := r.Dialer.DialContext(ctx, RobotServiceURL, nil)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get connection: %v", err)
 	}
@@ -36,12 +38,12 @@ func (r *RobotClient) CallService(ctx context.Context, url string, payload strin
 	}()
 	defer conn.Close()
 
-	reqBytes, err := generateCommand(payload)
+	payload, err := generatePayload(data)
 	if err != nil {
 		return "", err
 	}
 
-	if err := conn.WriteMessage(websocket.TextMessage, reqBytes); err != nil {
+	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
 		return "", fmt.Errorf("write failed: %v", err)
 	}
 

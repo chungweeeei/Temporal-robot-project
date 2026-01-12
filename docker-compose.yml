@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_PASSWORD: admin
       POSTGRES_USER: admin
-    image: postgres:${POSTGRES_VERSION}
+    image: postgres:18
     expose:
       - 5432
     # volumes:
@@ -32,7 +32,7 @@ services:
       - POSTGRES_SEEDS=postgresql
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/auto-setup:${TEMPORAL_VERSION}
+    image: temporalio/auto-setup:1.29.1
     ports:
       - 7233:7233
 
@@ -43,7 +43,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:${TEMPORAL_ADMINTOOLS_VERSION}
+    image: temporalio/admin-tools:1.29.1-tctl-1.18.4-cli-1.5.0
     stdin_open: true
     tty: true
   temporal-ui:
@@ -55,6 +55,6 @@ services:
       - TEMPORAL_CORS_ORIGINS=http://localhost:8080
       - TEMPORAL_UI_AUTH_DISABLED=true
       - TEMPORAL_UI_CSRF_COOKIE_INSECURE=true
-    image: temporalio/ui:${TEMPORAL_UI_VERSION}
+    image: temporalio/ui:2.42.1
     ports:
       - 8080:8080

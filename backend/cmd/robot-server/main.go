@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-server/robot"
+	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gorilla/websocket"
 )
 
@@ -49,12 +50,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var request robot.CallServiceRequest
+		var request pkg.ServiceRequest
 		if err := json.Unmarshal(message, &request); err != nil {
 			continue
 		}
 
-		go func(req robot.CallServiceRequest) {
+		go func(req pkg.ServiceRequest) {
 			response := bot.HandleRequest(req)
 
 			safeConn.WriteJSON(response)

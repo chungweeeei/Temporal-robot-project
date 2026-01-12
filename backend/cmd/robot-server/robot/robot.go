@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/chungweeeei/Temporal-robot-project/pkg"
 )
 
 type MockRobot struct {
@@ -47,7 +49,7 @@ func New() *MockRobot {
 }
 
 // Handle Request
-func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceResponse {
+func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceResponse {
 
 	fmt.Println("Receive Service Request:", request)
 
@@ -62,7 +64,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return CallServiceResponse{
+		return pkg.ServiceResponse{
 			Op:      "service_response",
 			Service: request.Service,
 			Values: struct {
@@ -92,7 +94,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return CallServiceResponse{
+		return pkg.ServiceResponse{
 			Op:      "service_response",
 			Service: request.Service,
 			Values: struct {
@@ -125,7 +127,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 				},
 			}
 			bytes, _ := json.Marshal(respData)
-			return CallServiceResponse{
+			return pkg.ServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {
@@ -145,7 +147,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 				},
 			}
 			bytes, _ := json.Marshal(respData)
-			return CallServiceResponse{
+			return pkg.ServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {
@@ -166,7 +168,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 		}
 		bytes, _ := json.Marshal(respData)
 
-		return CallServiceResponse{
+		return pkg.ServiceResponse{
 			Op:      "service_response",
 			Service: request.Service,
 			Values: struct {
@@ -188,7 +190,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 				},
 			}
 			bytes, _ := json.Marshal(respData)
-			return CallServiceResponse{
+			return pkg.ServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {
@@ -200,7 +202,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 		// Assume motion need 30 seconds to complete
 		switch motionArgs.Action {
 		case 3:
-			time.Sleep(30 * time.Second)
+			time.Sleep(5 * time.Second)
 		case 4:
 			time.Sleep(5 * time.Second)
 		}
@@ -218,7 +220,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return CallServiceResponse{
+		return pkg.ServiceResponse{
 			Op:      "service_response",
 			Service: request.Service,
 			Values: struct {
@@ -236,7 +238,7 @@ func (r *MockRobot) HandleRequest(request CallServiceRequest) CallServiceRespons
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return CallServiceResponse{
+		return pkg.ServiceResponse{
 			Op:      "service_response",
 			Service: request.Service,
 			Values: struct {

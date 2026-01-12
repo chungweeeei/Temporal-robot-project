@@ -1,23 +1,5 @@
 package robot
 
-type CallServiceRequest struct {
-	Op      string `json:"op"`
-	Service string `json:"service"`
-	Type    string `json:"type"`
-	Args    struct {
-		Data string `json:"data"`
-	} `json:"args"`
-}
-
-type CallServiceResponse struct {
-	Op      string `json:"op"`
-	Service string `json:"service"`
-	Values  struct {
-		Data string `json:"data"`
-	} `json:"values"`
-	Result bool `json:"result"`
-}
-
 type BaseRequestArgs struct {
 	ApiID int `json:"api_id"`
 }

@@ -51,21 +51,15 @@ export default function WorkflowToolbar({
                 </button>
                 <button 
                   className="px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 text-sm font-medium transition-all shadow-sm whitespace-nowrap" 
-                  onClick={() => onAddNode('StandUp')}
+                  onClick={() => onAddNode('Standup')}
                 >
-                  StandUp
+                  Standup
                 </button>
                 <button 
                   className="px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 text-sm font-medium transition-all shadow-sm whitespace-nowrap" 
-                  onClick={() => onAddNode('SitDown')}
+                  onClick={() => onAddNode('Sitdown')}
                 >
-                  SitDown
-                </button>
-                <button 
-                  className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md hover:bg-amber-100 text-amber-700 text-sm font-medium transition-all shadow-sm whitespace-nowrap" 
-                  onClick={() => onAddNode('Condition')}
-                >
-                   Condition
+                  Sitdown
                 </button>
              </div>
         </div>
