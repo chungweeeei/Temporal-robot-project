@@ -1,16 +1,17 @@
-POST http://localhost:3000/v1/workflows
+POST http://localhost:3000/api/v1/workflows/ee86e776-d6c5-49f2-92b6-e9f30ec392ef/trigger
 Content-Type: application/json
 
 {
-  "workflowId": "ee86e776-d6c5-49f2-92b6-e9f30ec392ef",
-  "rootNodeId": "start",
+  "workflow_id": "271c79b2-1dc7-4522-b8d5-472b677fc697",
+  "workflow_name": "Workflow2",
+  "root_node_id": "start",
   "nodes": {
     "start": {
       "id": "start",
       "type": "Start",
       "params": {},
       "transitions": {
-        "next": "1768210592808"
+        "next": "1768283616080"
       }
     },
     "end": {
@@ -19,34 +20,75 @@ Content-Type: application/json
       "params": {},
       "transitions": {}
     },
-    "1768210592808": {
-      "id": "1768210592808",
-      "type": "Move",
-      "params": {
-        "x": 0,
-        "y": 0
-      },
-      "transitions": {
-        "next": "1768210602113",
-        "failure": "1768210604827"
-      },
-      "retryPolicy": {
-        "maxAttempts": 1,
-        "initialInterval": 1000
-      }
-    },
-    "1768210602113": {
-      "id": "1768210602113",
+    "1768283616080": {
+      "id": "1768283616080",
       "type": "Standup",
       "params": {},
       "transitions": {
-        "next": "end"
+        "next": "1768283616081"
       }
     },
-    "1768210604827": {
-      "id": "1768210604827",
+    "1768283616081": {
+      "id": "1768283616081",
       "type": "Sitdown",
       "params": {},
+      "transitions": {
+        "next": "1768283616082"
+      }
+    },
+    "1768283616082": {
+      "id": "1768283616082",
+      "type": "TTS",
+      "params": {
+        "text": "新年快樂，我是Jeff"
+      },
+      "transitions": {
+        "next": "1768283616083"
+      }
+    },
+    "1768283616083": {
+      "id": "1768283616083",
+      "type": "Head",
+      "params": {
+        "angle": 45.0
+      },
+      "transitions": {
+        "next": "end"
+      }
+    }
+  }
+}
+
+
+###
+POST http://localhost:3000/api/v1/workflows/ee86e776-d6c5-49f2-92b6-e9f30ec392ef/trigger
+Content-Type: application/json
+
+{
+  "workflow_id": "271c79b2-1dc7-4522-b8d5-472b677fc697",
+  "workflow_name": "Workflow2",
+  "root_node_id": "start",
+  "nodes": {
+    "start": {
+      "id": "start",
+      "type": "Start",
+      "params": {},
+      "transitions": {
+        "next": "1768283616083"
+      }
+    },
+    "end": {
+      "id": "end",
+      "type": "End",
+      "params": {},
+      "transitions": {}
+    },
+    "1768283616083": {
+      "id": "1768283616083",
+      "type": "Head",
+      "params": {
+        "angle": 0.0
+      },
       "transitions": {
         "next": "end"
       }

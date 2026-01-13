@@ -25,7 +25,7 @@ func (ra *RobotActivities) Sitdown(ctx context.Context, params map[string]interf
 
 		logger.Info("Call Sitdown Service")
 
-		return ra.Client.CallService(ctx, string(dataBytes))
+		return ra.Client.CallService(ctx, "Sitdown", string(dataBytes))
 	})
 
 }

@@ -31,7 +31,7 @@ func (ra *RobotActivities) GetStatus(ctx context.Context) (RobotStatus, error) {
 			return RobotStatus{}, err
 		}
 
-		responseStr, err := ra.Client.CallService(ctx, string(dataBytes))
+		responseStr, err := ra.Client.CallService(ctx, "status", string(dataBytes))
 		if err != nil {
 			return RobotStatus{}, err
 		}

@@ -44,7 +44,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 			return "", fmt.Errorf("node with ID %s not found", currentNodeID)
 		}
 
-		currentStep = fmt.Sprintf("Executing node %s of type %s", currentNodeID, currentNode.Type)
+		currentStep = string(currentNode.Type)
 		switch currentNode.Type {
 		case pkg.ActivityStandUp, pkg.ActivitySitDown, pkg.ActivityHead, pkg.ActivityMove, pkg.ActivityTTS:
 			// Execute robot activity

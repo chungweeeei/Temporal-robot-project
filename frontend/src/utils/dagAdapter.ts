@@ -1,7 +1,9 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { WorkflowPayload, WorkflowNode, FlowNodeData, WorkflowTransitions } from '../types/schema';
+import type { WorkflowPayload, WorkflowNode, FlowNodeData } from '../types/schema';
 
 export const transformToDagPayload = (
+  workflowId: string,
+  workflowName: string,
   nodes: Node[],
   edges: Edge[]
 ): WorkflowPayload => {
@@ -14,7 +16,6 @@ export const transformToDagPayload = (
       type: (node.data as FlowNodeData).activityType,
       params: (node.data as FlowNodeData).params,
       transitions: {},
-      retryPolicy: (node.data as FlowNodeData).retryPolicy,
     };
   });
 
@@ -23,44 +24,105 @@ export const transformToDagPayload = (
     const sourceNode = payloadNodes[edge.source];
     const targetId = edge.target;
 
-    if (sourceNode) {
-      // 根據 Handle ID 對應到正確的 transition slot
-      // Action Node handles: 'success' (or null), 'failure'
-      // Condition Node handles: 'true', 'false'
-      
-      const handleId = edge.sourceHandle;
+    if (!sourceNode) return;
 
-      if (handleId === 'failure') {
-        sourceNode.transitions.failure = targetId;
-      } else if (handleId === 'true') {
-        sourceNode.transitions.true = targetId;
-      } else if (handleId === 'false') {
-        sourceNode.transitions.false = targetId;
-      } else {
-        // default / success handle
-        sourceNode.transitions.next = targetId;
-      }
+    // 根據 Handle ID 對應到正確的 transition slot
+    // Action Node handles: 'success' (or null), 'failure'
+    // Condition Node handles: 'true', 'false'
+    const handleId = edge.sourceHandle;
+
+    if (handleId === 'failure') {
+      sourceNode.transitions.failure = targetId;
+    } else {
+      // default / success handle
+      sourceNode.transitions.next = targetId;
     }
   });
-
-  // 3. 找出 Root Node (Start Node通常是id='start'，或者我們找沒有被指到的)
-  // 這裡我們直接假設 id='start' 的是起點，或者 fallback 到計算入度
-  let rootNodeId = 'start';
   
-  // 如果沒有 id 為 'start' 的 node，則透過 In-Degree 計算
-  if (!payloadNodes['start']) {
-    const inDegree: Record<string, number> = {};
-    Object.keys(payloadNodes).forEach(id => inDegree[id] = 0);
-    edges.forEach(edge => {
-       inDegree[edge.target] = (inDegree[edge.target] || 0) + 1;
-    });
-    const roots = Object.keys(inDegree).filter(id => inDegree[id] === 0);
-    if (roots.length > 0) rootNodeId = roots[0];
-  }
-
   return {
-    workflowId: crypto.randomUUID(), // Generate a random ID for this execution/template
-    rootNodeId,
+    workflow_id: workflowId,
+    workflow_name: workflowName,
+    root_node_id: "start",
     nodes: payloadNodes,
   };
 };
+
+
+export const transformBackToReactFlow = (
+  backendNodes: Record<string, WorkflowNode>
+): { nodes: Node[]; edges: Edge[] } => {
+
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  // 簡單的自動佈局參數 (因為後端目前沒有存 x, y)
+  let gridX = 250;
+  let gridY = 50;
+  const colWidth = 250;
+  const rowHeight = 150;
+  let colIndex = 0;
+  const maxCols = 3;
+
+  Object.values(backendNodes).forEach((node) => {
+    
+    // 1. 決定 Node Type 與 Position
+    let type = "action";
+    const activityType = node.type.toLowerCase();
+    let position = {x: 0, y: 0};
+
+    if (activityType === "start"){
+      type = "start";
+      position = { x: 50, y: 300 };
+    } else if (activityType === "end"){
+      type = "end";
+      position = { x: 1000, y: 300 };
+    } else {
+      position = { x: gridX, y: gridY };
+
+      // 更新 Grid 指標
+      gridX += colWidth;
+      colIndex++;
+      if (colIndex >= maxCols) {
+        colIndex = 0;
+        gridX = 250; // 重置 X (保持在 Start 右側)
+        gridY += rowHeight;
+      }
+    
+    }
+
+    // 2. 計算位置 (Grid Layout)
+    const newNode: Node = {
+      id: node.id,
+      type: type,
+      position: position,
+      data: {
+        label: node.type,
+        activityType: node.type,
+        params: node.params || {},
+      }
+    };
+    nodes.push(newNode);
+
+    // 2. 建立 Edges (還原連線關係)
+    // 必須檢查每個 transition 是否存在，並建立對應的 Edge
+    const { transitions } = node;
+
+    const addEdge = (targetId: string | undefined, handleId?: string, label?: string, stroke?: string) =>{
+        if (!targetId) return;
+        edges.push({
+            id: `e-${node.id}-${targetId}-${handleId || 'default'}`,
+            source: node.id,
+            target: targetId,
+            sourceHandle: handleId,
+            label: label,
+            animated: false,
+            style: stroke ? { stroke } : undefined,
+        });
+    }   
+
+    addEdge(transitions.next);
+    addEdge(transitions.failure, 'failure', undefined, '#ff4d4f'); // 紅線代表失敗
+  })
+
+  return {nodes, edges};
+}

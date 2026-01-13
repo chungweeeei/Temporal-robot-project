@@ -34,6 +34,6 @@ func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{
 
 		logger.Info("Call TTS Service")
 
-		return ra.Client.CallService(ctx, string(dataBytes))
+		return ra.Client.CallService(ctx, "TTS", string(dataBytes))
 	})
 }

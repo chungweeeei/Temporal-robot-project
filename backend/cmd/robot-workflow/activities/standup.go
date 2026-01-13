@@ -23,6 +23,6 @@ func (ra *RobotActivities) Standup(ctx context.Context, params map[string]interf
 		}
 
 		logger.Info("Call Standup Service")
-		return ra.Client.CallService(ctx, string(dataBytes))
+		return ra.Client.CallService(ctx, "Standup", string(dataBytes))
 	})
 }

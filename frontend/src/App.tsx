@@ -1,17 +1,22 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, use } from 'react';
 import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type OnNodesChange, type OnEdgesChange, type OnNodesDelete, applyNodeChanges, applyEdgeChanges, type NodeMouseHandler, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './utils/http';
 
 // 引入我們剛剛定義的型別與工具
-import { transformToDagPayload } from './utils/dagAdapter';
 import type { BaseParams, RetryPolicy, ConditionParams, MoveParams, SleepParams } from './types/schema';
 import ConditionNode from './components/nodes/ConditionNode';
 import ActionNode from './components/nodes/ActionNode';
 import StartNode from './components/nodes/StartNode';
 import EndNode from './components/nodes/EndNode';
-import WorkflowToolbar, { type WorkflowStatus } from './components/WorkflowToolbar';
+import WorkflowToolbar from './components/WorkflowToolbar';
 import NodeEditorModal from './components/NodeEditorModal';
+import { transformBackToReactFlow, transformToDagPayload } from './utils/dagAdapter';
+import { useSaveWorkflow } from './hooks/useSaveWorkflow';
+import { useFetchWorkflow } from './hooks/useFetchWorkflow';
+import { useFetchWorkflowById } from './hooks/useFetchWorkflowById';
+import { type WorkflowPayload } from './types/schema';
 
 // --- 註冊 Custom Nodes ---
 const nodeTypes = {
@@ -21,25 +26,52 @@ const nodeTypes = {
   end: EndNode,
 };
 
-// --- 建立 React Query Client ---
-const queryClient = new QueryClient();
-
-// --- 模擬初始節點 ---
-const initialNodes: Node[] = [
-  { id: 'start', position: { x: 50, y: 300 }, data: { label: 'Start', activityType: 'Start', params: {} }, type: 'start', deletable: false },
-  { id: 'end', position: { x: 600, y: 300 }, data: { label: 'End', activityType: 'End', params: {} }, type: 'end', deletable: false },
-];
-
 function Scheduler() {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+
+  // 1. 列表狀態
+  const { data: workflows = []} = useFetchWorkflow();
+  const [currentWorkflowName, setCurrentWorkflowName] = useState<string>('');
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string>('');
+
+  // 2. 詳細資料狀態 (依賴 currentWorkflowId)
+  const { data: workflowDetail, isLoading: isDetailLoading } = useFetchWorkflowById(currentWorkflowId);
   
+  // Effect 1: 當列表載入且目前沒有選中時，預設選取第一筆
+  useEffect(() => {
+    if (workflows.length > 0 && !currentWorkflowId){
+      if (workflows[0].workflow_id) {
+        setCurrentWorkflowId(workflows[0].workflow_id);
+        setCurrentWorkflowName(workflows[0].workflow_name || '');
+      }
+    }
+  }, [workflows, currentWorkflowId])
+
+  // Effect 2: 當詳細資料載入時，更新畫布
+  useEffect(() => {
+    if (workflowDetail && workflowDetail.nodes) {
+        // 使用 Detail 資料更新畫布
+        const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(workflowDetail.nodes);
+        setNodes(newNodes);
+        setEdges(newEdges);
+    } else if (workflowDetail && !workflowDetail.nodes) {
+        // 如果該 Workflow 還是空的
+        setNodes([]);
+        setEdges([]);
+    }
+  }, [workflowDetail]);
+
+  // Handle Workflow Selection Change
+  const handleWorkflowSelect = (id: string) => {
+    setCurrentWorkflowId(id);
+    // 這裡我們只更新 ID，React Query 的 Hook 會自動幫我們去抓新的資料
+    // 並觸發上面的 useEffect 更新畫布
+  };
+
   // --- Modal 狀態 ---
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  // --- Workflow Execution State ---
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>('idle');
 
   // React Flow 回呼函式
   const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
@@ -82,41 +114,21 @@ function Scheduler() {
   };
 
   // --- API Mutation (儲存 Workflow) ---
-  /* const mutation = useMutation({
-    mutationFn: (data: WorkflowPayload) => axios.post('http://localhost:3000/api/workflow', data),
-    onSuccess: () => alert('Workflow saved successfully!'),
-    onError: (err) => alert(`Error: ${err.message}`)
-  }); */
-
+  const mutation = useSaveWorkflow();
   const handleSaveWorkflow = () => {
-    const payload = transformToDagPayload(nodes, edges);
-    console.log("Sending Payload:", JSON.stringify(payload, null, 2));
-    // mutation.mutate(payload); // 暫時註解，待後端完成
-    alert('Payload generated! Check console for details.');
-  };
+    const payload = transformToDagPayload(currentWorkflowId, currentWorkflowName, nodes, edges);
+    console.log("Saving Workflow Payload:", JSON.stringify(payload, null, 2));
+    // Call mutate inside the handler
+    // mutation.mutate(payload, {
+    //   onSuccess: () => {
+    //      alert('Workflow saved successfully!');
+    //   },
+    //   onError: (error) => {
+    //     alert(`Failed to save: ${error.message}`);
+    //   }
+    // });
 
-  const handleTriggerWorkflow = () => {
-    // Placeholder for trigger logic
-    console.log("Trigger workflow clicked");
-    setWorkflowStatus('running');
-    
-    // Simulate a workflow completion after 5 seconds
-    setTimeout(() => {
-      setWorkflowStatus((prev) => prev === 'running' ? 'completed' : prev);
-    }, 5000);
-  };
-
-  const handleStopWorkflow = () => {
-    console.log("Stop workflow clicked");
-    setWorkflowStatus('paused');
-  };
-
-  const handleResumeWorkflow = () => {
-    console.log("Resume workflow clicked");
-    if (workflowStatus === 'paused') {
-      setWorkflowStatus('running');
-    }
-  };
+  }
 
   // --- 新增節點功能 ---
   const handleAddNode = (type: string) => {
@@ -155,12 +167,15 @@ function Scheduler() {
   return (
     <div className="w-screen h-screen flex flex-col">
       <WorkflowToolbar 
-        onAddNode={handleAddNode} 
-        onSave={handleSaveWorkflow} 
-        onTrigger={handleTriggerWorkflow}
-        onStop={handleStopWorkflow}
-        onResume={handleResumeWorkflow}
-        status={workflowStatus}
+        onAddNode={handleAddNode}
+        onSave={handleSaveWorkflow}
+        // Pass List and Selection Handler
+        workflows={workflows.map((w: WorkflowPayload) => ({ 
+            workflow_id: w.workflow_id || '', 
+            workflow_name: w.workflow_name || 'Untitled' 
+        }))}
+        currentWorkflowId={currentWorkflowId}
+        onWorkflowSelect={handleWorkflowSelect}
       />
 
       <div className="flex-1">

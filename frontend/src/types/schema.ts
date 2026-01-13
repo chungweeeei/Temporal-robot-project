@@ -1,10 +1,10 @@
-export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End' | 'Condition';
+export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End';
 
 export interface RetryPolicy {
-  maxAttempts: number;
-  initialInterval: number; // ms
-  backoffCoefficient?: number;
-  maximumInterval?: number; // ms
+  max_attempts: number;
+  initial_interval: number; // ms
+  backoff_coefficient?: number;
+  maximum_interval?: number; // ms
 }
 
 export interface BaseParams {
@@ -29,7 +29,7 @@ export interface FlowNodeData extends Record<string, unknown> {
   label: string;
   activityType: ActivityType;
   params: MoveParams | SleepParams | ConditionParams | BaseParams;
-  retryPolicy?: RetryPolicy;
+  retry_policy?: RetryPolicy;
 }
 
 export interface WorkflowTransitions {
@@ -44,13 +44,14 @@ export interface WorkflowNode {
   id: string;
   type: ActivityType;
   params: BaseParams;
-  retryPolicy?: RetryPolicy;
+  retry_policy?: RetryPolicy;
   transitions: WorkflowTransitions;
 }
 
 // 最終 Payload
 export interface WorkflowPayload {
-  workflowId?: string;
-  rootNodeId?: string;
+  workflow_id?: string;
+  workflow_name?: string;
+  root_node_id?: string;
   nodes: Record<string, WorkflowNode>;
 }

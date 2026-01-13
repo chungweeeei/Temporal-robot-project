@@ -1,25 +1,27 @@
-import React from 'react';
+import { useState } from 'react';
 
 export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+
 
 interface WorkflowToolbarProps {
   onAddNode: (type: string) => void;
   onSave: () => void;
-  onTrigger?: () => void;
-  onStop?: () => void;
-  onResume?: () => void;
-  status?: WorkflowStatus;
+
+  // 新增三個屬性
+  workflows: { workflow_id: string; workflow_name: string }[];
+  currentWorkflowId: string;
+  onWorkflowSelect: (workflowId: string) => void;
 }
 
 export default function WorkflowToolbar({ 
   onAddNode, 
-  onSave, 
-  onTrigger, 
-  onStop, 
-  onResume,
-  status = 'idle' 
+  onSave,
+  workflows,
+  currentWorkflowId,
+  onWorkflowSelect
 }: WorkflowToolbarProps) {
-  
+  const [status, setStatus] = useState<WorkflowStatus>('idle');
+
   const getStatusColor = (s: WorkflowStatus) => {
     switch (s) {
       case 'running': return 'bg-blue-100 text-blue-700 border-blue-200';
@@ -33,6 +35,25 @@ export default function WorkflowToolbar({
   return (
     <div className="p-3 border-b border-gray-300 flex items-center bg-gray-50 shadow-sm gap-4">
         
+        {/* Workflow Select Bar */}
+        <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Workflow:</label>
+            <select 
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              value={currentWorkflowId}
+              onChange={(e) => onWorkflowSelect(e.target.value)}
+            >
+                {workflows.map((workflow) => (
+                  <option 
+                    key={workflow.workflow_id}
+                    value={workflow.workflow_id}
+                  >
+                    {workflow.workflow_name}
+                  </option>
+                ))}
+            </select>
+        </div>
+
         {/* Activity Palette */}
         <div className="flex items-center gap-3 overflow-x-auto max-w-xl no-scrollbar px-1 py-1 border-r border-gray-200 pr-4">
              <span className="text-gray-500 font-semibold text-sm whitespace-nowrap">Activities:</span>
@@ -81,7 +102,7 @@ export default function WorkflowToolbar({
             {/* Control Group */}
             <div className="flex gap-1 border-r border-gray-200 pr-3 mr-1">
                <button 
-                 onClick={onStop} 
+                 onClick={() => { console.log("Stop clicked"); }} 
                  disabled={status === 'idle'}
                  className="px-3 py-1.5 bg-white text-red-600 border border-gray-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                >
@@ -90,14 +111,14 @@ export default function WorkflowToolbar({
                
                {status === 'paused' ? (
                  <button 
-                   onClick={onResume} 
+                   onClick={() => { console.log("Resume clicked"); }} 
                    className="px-3 py-1.5 bg-white text-green-600 border border-gray-200 hover:bg-green-50 rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                  >
                     <span className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-green-600 border-b-[4px] border-b-transparent ml-0.5"></span> Resume
                  </button>
                ) : (
                  <button 
-                   onClick={onTrigger} 
+                   onClick={() => { console.log("Run clicked"); }} 
                    disabled={status === 'running'}
                    className="px-3 py-1.5 bg-white text-indigo-600 border border-gray-200 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                  >

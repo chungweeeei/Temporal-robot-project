@@ -7,10 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/chungweeeei/Temporal-robot-project/cmd/rest-server/data"
 	"go.temporal.io/sdk/client"
 )
 
 func main() {
+
+	db := initDB()
 
 	infoLog := log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -23,6 +26,8 @@ func main() {
 	}
 
 	app := Config{
+		DB:             db,
+		Model:          data.New(db),
 		InfoLog:        infoLog,
 		ErrorLog:       errorLog,
 		ErrorChan:      make(chan error),

@@ -45,8 +45,6 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
       };
     } else if (type === 'Sleep') {
       params = { duration: Number(formData.get('duration')) };
-    } else if (type === 'Condition') {
-      params = { expression: formData.get('expression') as string };
     } else {
       params = {};
     }
@@ -66,14 +64,6 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
         <h3 className="mt-0 text-lg font-bold border-b pb-2 mb-4">Edit {data.activityType}</h3>
         
         <form onSubmit={handleSubmit}>
-
-        {/* Condition Params */}
-        {data.activityType === 'Condition' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Expression (e.g. x {'>'} 5):</label>
-              <input name="expression" type="text" defaultValue={(data.params as ConditionParams).expression} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-            </div>
-        )}
         
         {/* Move Params */}
         {data.activityType === 'Move' && (

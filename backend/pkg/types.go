@@ -5,7 +5,7 @@ type ServiceRequest struct {
 	Service string `json:"service"`
 	Type    string `json:"type"`
 	Args    struct {
-		Data string `json:"data"`
+		Data any `json:"data"`
 	} `json:"args"`
 }
 
@@ -55,7 +55,7 @@ type WorkflowNode struct {
 }
 
 type WorkflowPayload struct {
-	WorkflowID string                  `json:"workflowId,omitempty"`
-	RootNodeID string                  `json:"rootNodeId,omitempty"`
+	WorkflowID string                  `json:"workflow_id,omitempty"`
+	RootNodeID string                  `json:"root_node_id,omitempty"`
 	Nodes      map[string]WorkflowNode `json:"nodes"`
 }

@@ -14,16 +14,26 @@ const (
 	ACTIVITY_HEARTBEAT_INTERVAL = 3 // unit in seconds
 )
 
-func generatePayload(data string) ([]byte, error) {
+func generatePayload(actionType string, data any) ([]byte, error) {
 	req := pkg.ServiceRequest{
 		Op:      "call_service",
 		Service: "/api/system",
 		Type:    "custom_msgs/srv/Api",
 		Args: struct {
-			Data string `json:"data"`
+			Data any `json:"data"`
 		}{
 			Data: data,
 		},
+	}
+	if actionType == "head" {
+		req.Service = "/set_angle_tag"
+		req.Type = "custom_msgs/srv/SetFloat"
+
+		req.Args = struct {
+			Data any `json:"data"`
+		}{
+			Data: data,
+		}
 	}
 
 	payload, err := json.Marshal(req)

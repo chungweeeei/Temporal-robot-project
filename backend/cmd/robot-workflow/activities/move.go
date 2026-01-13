@@ -34,7 +34,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 		if err != nil {
 			return "", err
 		}
-		response, err := ra.Client.CallService(ctx, string(dataBytes))
+		response, err := ra.Client.CallService(ctx, "Move", string(dataBytes))
 		if err != nil {
 			logger.Error("Failed to send move command", "erorr", err)
 			return "", err
@@ -70,10 +70,10 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 			// 2. send heartbeart, tell temporal server we are still alive
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("Robot currently at (%f, %f)", status.X, status.Y))
 			if !status.IsMoving {
-				if targetX == 5.0 && targetY == 5.0 {
-					return "", fmt.Errorf("robot move failed")
-				}
-
+				// mock failure condition
+				// if targetX == 5.0 && targetY == 5.0 {
+				// 	return "", fmt.Errorf("robot move failed")
+				// }
 				return "move completed", nil
 			}
 		}

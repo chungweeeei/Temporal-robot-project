@@ -18,8 +18,9 @@ func RobotMonitorWorkflow(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	robotIP := os.Getenv("ROBOT_IP")
 	if robotIP == "" {
-		robotIP = "127.0.0.1"
+		robotIP = "10.8.140.130"
 	}
+	fmt.Println("robotIp", robotIP)
 	robotURL := fmt.Sprintf("ws://%s:9090", robotIP)
 	var ra *activities.RobotActivities
 
