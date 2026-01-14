@@ -35,7 +35,7 @@ func (w *Workflow) Upsert(workflow Workflow) (string, error) {
 func (w *Workflow) Get() ([]Workflow, error) {
 
 	workflows := []Workflow{}
-	result := db.Find(&workflows)
+	result := db.Find(&workflows).Order("created_at")
 	if result.Error != nil {
 		return nil, errors.New("failed to retrieve workflows")
 	}

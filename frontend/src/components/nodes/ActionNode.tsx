@@ -1,4 +1,3 @@
-import React from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { FlowNodeData } from '../../types/schema';
 

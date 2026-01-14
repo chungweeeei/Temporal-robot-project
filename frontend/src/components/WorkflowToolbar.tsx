@@ -6,6 +6,7 @@ export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'fail
 interface WorkflowToolbarProps {
   onAddNode: (type: string) => void;
   onSave: () => void;
+  onTrigger: () => void;
 
   // 新增三個屬性
   workflows: { workflow_id: string; workflow_name: string }[];
@@ -16,6 +17,7 @@ interface WorkflowToolbarProps {
 export default function WorkflowToolbar({ 
   onAddNode, 
   onSave,
+  onTrigger,
   workflows,
   currentWorkflowId,
   onWorkflowSelect
@@ -82,6 +84,18 @@ export default function WorkflowToolbar({
                 >
                   Sitdown
                 </button>
+                <button 
+                  className="px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 text-sm font-medium transition-all shadow-sm whitespace-nowrap" 
+                  onClick={() => onAddNode('TTS')}
+                >
+                  TTS
+                </button>
+                <button 
+                  className="px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 text-sm font-medium transition-all shadow-sm whitespace-nowrap" 
+                  onClick={() => onAddNode('Head')}
+                >
+                  Head
+                </button>
              </div>
         </div>
 
@@ -118,7 +132,7 @@ export default function WorkflowToolbar({
                  </button>
                ) : (
                  <button 
-                   onClick={() => { console.log("Run clicked"); }} 
+                   onClick={onTrigger} 
                    disabled={status === 'running'}
                    className="px-3 py-1.5 bg-white text-indigo-600 border border-gray-200 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                  >

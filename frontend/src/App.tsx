@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect, use } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type OnNodesChange, type OnEdgesChange, type OnNodesDelete, applyNodeChanges, applyEdgeChanges, type NodeMouseHandler, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './utils/http';
 
 // 引入我們剛剛定義的型別與工具
-import type { BaseParams, RetryPolicy, ConditionParams, MoveParams, SleepParams } from './types/schema';
+import type { BaseParams, MoveParams, SleepParams } from './types/schema';
 import ConditionNode from './components/nodes/ConditionNode';
 import ActionNode from './components/nodes/ActionNode';
 import StartNode from './components/nodes/StartNode';
@@ -14,6 +14,7 @@ import WorkflowToolbar from './components/WorkflowToolbar';
 import NodeEditorModal from './components/NodeEditorModal';
 import { transformBackToReactFlow, transformToDagPayload } from './utils/dagAdapter';
 import { useSaveWorkflow } from './hooks/useSaveWorkflow';
+import { useTriggerWorkflow } from './hooks/useTriggerWorkflow';
 import { useFetchWorkflow } from './hooks/useFetchWorkflow';
 import { useFetchWorkflowById } from './hooks/useFetchWorkflowById';
 import { type WorkflowPayload } from './types/schema';
@@ -93,7 +94,7 @@ function Scheduler() {
   }, []);
 
   // --- 儲存 Modal 的變更 ---
-  const handleSaveNodeParams = (newParams: BaseParams | MoveParams | SleepParams | ConditionParams, newRetryPolicy?: RetryPolicy) => {
+  const handleSaveNodeParams = (newParams: BaseParams | MoveParams | SleepParams ) => {
     if (!editingNode) return;
     
     setNodes((nds) => nds.map((node) => {
@@ -104,7 +105,6 @@ function Scheduler() {
           data: { 
             ...node.data, 
             params: newParams,
-            retryPolicy: newRetryPolicy || node.data.retryPolicy
           } 
         };
       }
@@ -114,20 +114,32 @@ function Scheduler() {
   };
 
   // --- API Mutation (儲存 Workflow) ---
-  const mutation = useSaveWorkflow();
+  const saveMutation = useSaveWorkflow();
   const handleSaveWorkflow = () => {
     const payload = transformToDagPayload(currentWorkflowId, currentWorkflowName, nodes, edges);
-    console.log("Saving Workflow Payload:", JSON.stringify(payload, null, 2));
     // Call mutate inside the handler
-    // mutation.mutate(payload, {
-    //   onSuccess: () => {
-    //      alert('Workflow saved successfully!');
-    //   },
-    //   onError: (error) => {
-    //     alert(`Failed to save: ${error.message}`);
-    //   }
-    // });
+    saveMutation.mutate(payload, {
+      onSuccess: () => {
+         alert('Workflow saved successfully!');
+      },
+      onError: (error) => {
+        alert(`Failed to save: ${error.message}`);
+      }
+    });
+  }
 
+  const triggerMutation = useTriggerWorkflow();
+  const handleTriggerWorkflow = () => {
+    const payload = transformToDagPayload(currentWorkflowId, currentWorkflowName, nodes, edges);
+    // Call mutate inside the handler
+    triggerMutation.mutate(payload, {
+      onSuccess: () => {
+         alert('Workflow triggered successfully!');
+      },
+      onError: (error) => {
+        alert(`Failed to trigger: ${error.message}`);
+      }
+    });
   }
 
   // --- 新增節點功能 ---
@@ -169,6 +181,7 @@ function Scheduler() {
       <WorkflowToolbar 
         onAddNode={handleAddNode}
         onSave={handleSaveWorkflow}
+        onTrigger={handleTriggerWorkflow}
         // Pass List and Selection Handler
         workflows={workflows.map((w: WorkflowPayload) => ({ 
             workflow_id: w.workflow_id || '', 

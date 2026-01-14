@@ -61,6 +61,8 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 			return r.MoveToLocation(request.Service, requestDataBytes)
 		case RobotMotionControlID:
 			return r.HandleMotionControl(request.Service, requestDataBytes)
+		case RobotTTSCommandID:
+			return r.HandleTTSCommand(request.Service, requestDataBytes)
 		default:
 			return r.HandleUnknownRequest(args.ApiID, request.Service)
 		}

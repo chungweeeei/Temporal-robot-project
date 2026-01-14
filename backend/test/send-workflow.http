@@ -72,7 +72,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:3000/api/v1/workflows/ee86e776-d6c5-49f2-92b6-e9f30ec392ef/trigger
+POST http://localhost:3000/api/v1/workflows/271c79b2-1dc7-4522-b8d5-472b677fc697/trigger
 Content-Type: application/json
 
 {
@@ -96,10 +96,9 @@ Content-Type: application/json
     },
     "1768283616081": {
       "id": "1768283616081",
-      "type": "Move",
+      "type": "Head",
       "params": {
-        "x": 3.0,
-        "y": 3.0
+        "angle": 45.0
       },
       "transitions": {
         "next": "end"

@@ -1,4 +1,4 @@
-export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End';
+export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End' | 'TTS' | 'Head';
 
 export interface RetryPolicy {
   max_attempts: number;
@@ -20,16 +20,19 @@ export interface SleepParams extends BaseParams {
   duration: number; // milliseconds
 }
 
-export interface ConditionParams extends BaseParams {
-  expression: string; // e.g. "x > 5"
+export interface HeadParams extends BaseParams {
+  angle: number; // degrees
+}
+
+export interface TTSParams extends BaseParams {
+  text: string; // text to speak
 }
 
 // 這是 React Flow Node 的 data 結構
 export interface FlowNodeData extends Record<string, unknown> {
   label: string;
   activityType: ActivityType;
-  params: MoveParams | SleepParams | ConditionParams | BaseParams;
-  retry_policy?: RetryPolicy;
+  params: MoveParams | SleepParams | BaseParams | HeadParams | TTSParams;
 }
 
 export interface WorkflowTransitions {

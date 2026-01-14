@@ -44,8 +44,6 @@ export async function fetchWorkflowById(workflowId: string){
 
 export async function saveWorkflow(data: WorkflowPayload){
 
-    console.log(data);
-
     const response = await axios.post(
         "http://localhost:3000/api/v1/workflows",
         data,
@@ -58,6 +56,25 @@ export async function saveWorkflow(data: WorkflowPayload){
 
     if (response.status !== 200){
         throw new Error(`Failed to save workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}
+
+export async function triggerWorkflow(data: WorkflowPayload){
+
+    const response = await axios.post(
+        `http://localhost:3000/api/v1/workflows/${data.workflow_id}/trigger`,
+        data,
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200){
+        throw new Error(`Failed to trigger workflow: ${response.statusText}`);
     }
 
     return response.data;
