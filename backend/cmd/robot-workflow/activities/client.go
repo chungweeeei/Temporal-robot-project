@@ -3,27 +3,36 @@ package activities
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 )
 
-const RobotServiceURL = "ws://10.8.140.130:9090"
-
 type RobotClient struct {
-	Dialer WSDialer
+	robotURL string
+	Dialer   WSDialer
 }
 
 func NewRobotClient() *RobotClient {
+
+	robotIP := os.Getenv("ROBOT_IP")
+	if robotIP == "" {
+		robotIP = "localhost"
+	}
+	robotURL := fmt.Sprintf("ws://%s:9090", robotIP)
+
 	return &RobotClient{
+		robotURL: robotURL,
 		Dialer: &DefaultDialer{
 			Dialer: websocket.DefaultDialer,
 		},
 	}
 }
 
-func (r *RobotClient) CallService(ctx context.Context, actionType string, data string) (string, error) {
-	conn, _, err := r.Dialer.DialContext(ctx, RobotServiceURL, nil)
+func (r *RobotClient) CallService(ctx context.Context, actionType string, data any) (string, error) {
+
+	conn, _, err := r.Dialer.DialContext(ctx, r.robotURL, nil)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get connection: %v", err)
 	}
@@ -56,7 +65,7 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data s
 
 	go func() {
 		_, msg, err := conn.ReadMessage()
-		color.Cyan("Received Message", "msg", msg)
+		color.Cyan("Received Message", "msg", string(msg))
 		resultCh <- readResult{data: msg, err: err}
 	}()
 

@@ -1,11 +1,13 @@
 package activities
 
 type RobotActivities struct {
-	Client *RobotClient
+	Client      *RobotClient
+	StatusCache *StatusCache
 }
 
-func NewRobotActivities() *RobotActivities {
+func NewRobotActivities(statusCache *StatusCache) *RobotActivities {
 	return &RobotActivities{
-		Client: NewRobotClient(),
+		Client:      NewRobotClient(),
+		StatusCache: statusCache,
 	}
 }

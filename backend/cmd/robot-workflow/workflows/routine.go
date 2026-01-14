@@ -25,7 +25,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
 			MaximumInterval:    time.Minute,
-			MaximumAttempts:    3,
+			MaximumAttempts:    1,
 			BackoffCoefficient: 2.0,
 		},
 	}
@@ -49,8 +49,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		case pkg.ActivityStandUp, pkg.ActivitySitDown, pkg.ActivityHead, pkg.ActivityMove, pkg.ActivityTTS:
 			// Execute robot activity
 			var result string
-			future := workflow.ExecuteActivity(ctx, string(currentNode.Type), currentNode.Params)
-			err := future.Get(ctx, &result)
+			err := workflow.ExecuteActivity(ctx, string(currentNode.Type), currentNode.Params).Get(ctx, &result)
 			if err != nil {
 				logger.Error("Activity failed", "error", err)
 			}

@@ -15,21 +15,35 @@ type ServiceResponse struct {
 	Values  struct {
 		Data string `json:"data"`
 	} `json:"values"`
-	Result bool `json:"result"`
+}
+
+type TopicRequest struct {
+	Op           string `json:"op"`
+	Topic        string `json:"topic"`
+	Type         string `json:"type"`
+	ThrottleRate int    `json:"throttle_rate"`
+	QueueLength  int    `json:"queue_length"`
+}
+
+type TopicResponse struct {
+	Op    string `json:"op"`
+	Topic string `json:"topic"`
+	Msg   struct {
+		Data string `json:"data"`
+	} `json:"msg"`
 }
 
 type ActivityType string
 
 const (
-	ActivityStandUp   ActivityType = "Standup"
-	ActivitySitDown   ActivityType = "Sitdown"
-	ActivityHead      ActivityType = "Head"
-	ActivityMove      ActivityType = "Move"
-	ActivityTTS       ActivityType = "TTS"
-	ActivitySleep     ActivityType = "Sleep"
-	ActivityStart     ActivityType = "Start"
-	ActivityEnd       ActivityType = "End"
-	ActivityCondition ActivityType = "Condition"
+	ActivityStandUp ActivityType = "Standup"
+	ActivitySitDown ActivityType = "Sitdown"
+	ActivityHead    ActivityType = "Head"
+	ActivityMove    ActivityType = "Move"
+	ActivityTTS     ActivityType = "TTS"
+	ActivitySleep   ActivityType = "Sleep"
+	ActivityStart   ActivityType = "Start"
+	ActivityEnd     ActivityType = "End"
 )
 
 type RetryPolicy struct {

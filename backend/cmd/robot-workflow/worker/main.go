@@ -1,12 +1,19 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"log"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
+	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/helper"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
+	"github.com/chungweeeei/Temporal-robot-project/pkg"
+	"github.com/fatih/color"
+	"github.com/gorilla/websocket"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
@@ -30,29 +37,140 @@ func main() {
 	}
 	defer c.Close()
 
+	// create StatusCache instance
+	statusCache := &activities.StatusCache{}
+
+	// Background subscriber
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go RobotStatusSubscriber(ctx, "ws://localhost:9090/", statusCache)
+
 	w := worker.New(c, "ROBOT_TASK_QUEUE", worker.Options{})
 
-	activities := activities.NewRobotActivities()
+	activities := activities.NewRobotActivities(statusCache)
 	w.RegisterWorkflow(workflows.RobotWorkflow)
-	// w.RegisterWorkflow(workflows.RobotMonitorWorkflow)
 	w.RegisterActivity(activities)
-
-	// // Automatically start the monitor Workflow
-	// go func() {
-	// 	workflowOptions := client.StartWorkflowOptions{
-	// 		ID:        "robot_monitor_workflow",
-	// 		TaskQueue: "ROBOT_TASK_QUEUE",
-	// 	}
-	// 	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.RobotMonitorWorkflow)
-	// 	if err != nil {
-	// 		log.Printf("Unable to execute workflow (might be already running): %v", err)
-	// 	} else {
-	// 		log.Printf("Started workflow WorkflowID: %s RunID: %s", we.GetID(), we.GetRunID())
-	// 	}
-	// }()
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		log.Fatalln("Unable to start worker", err)
+	}
+}
+
+func RobotStatusSubscriber(
+	ctx context.Context,
+	wsURL string,
+	cache *activities.StatusCache,
+) {
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				if err := subscribeLoop(ctx, wsURL, cache); err != nil {
+					log.Println("Subscriber error, reconnecting in 5s:", err)
+					time.Sleep(5 * time.Second)
+				}
+			}
+		}
+	}()
+}
+
+// 定義一個能夠容忍型別混亂的結構 (應該要從 ROS端直接修改這樣上層就不用多做一層parsing)
+type RawRobotStatus struct {
+	ApiID        int         `json:"api_id"`
+	BatteryLevel interface{} `json:"battery_level"` // Could be string "94" or int 94
+	Pose         struct {
+		Position struct {
+			X interface{} `json:"x"` // string or number
+			Y interface{} `json:"y"`
+			Z interface{} `json:"z"`
+		} `json:"position"`
+		Orientation struct {
+			X interface{} `json:"x"`
+			Y interface{} `json:"y"`
+			Z interface{} `json:"z"`
+			W interface{} `json:"w"`
+		} `json:"orientation"`
+	} `json:"pose"`
+}
+
+func subscribeLoop(
+	ctx context.Context,
+	wsURL string,
+	cache *activities.StatusCache,
+) error {
+
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// 1. 發送訂閱請求
+	subscribeMsg := map[string]interface{}{
+		"op":            "subscribe",
+		"topic":         "/api/info",
+		"type":          "std_msgs/msg/String",
+		"throttle_rate": 0,
+		"queue_length":  1,
+	}
+	if err := conn.WriteJSON(subscribeMsg); err != nil {
+		return err
+	}
+
+	// 2. 持續接收訊息
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			_, message, err := conn.ReadMessage()
+			if err != nil {
+				return err
+			}
+
+			var msg pkg.TopicResponse
+			if err := json.Unmarshal(message, &msg); err != nil {
+				continue
+			}
+
+			var resp struct {
+				DeviceName   string         `json:"device_name"`
+				DeviceStatus RawRobotStatus `json:"device_status"`
+				TimeStamp    string         `json:"timestamp"`
+			}
+			if err := json.Unmarshal([]byte(msg.Msg.Data), &resp); err != nil {
+				continue
+			}
+
+			if resp.DeviceStatus.BatteryLevel == nil {
+				continue
+			}
+
+			status := activities.RobotStatus{
+				ApiID:        resp.DeviceStatus.ApiID,
+				BatteryLevel: helper.ToInt(resp.DeviceStatus.BatteryLevel),
+			}
+			status.Pose.Position.X = helper.ToFloat(resp.DeviceStatus.Pose.Position.X)
+			status.Pose.Position.Y = helper.ToFloat(resp.DeviceStatus.Pose.Position.Y)
+			status.Pose.Position.Z = helper.ToFloat(resp.DeviceStatus.Pose.Position.Z)
+
+			status.Pose.Orientation.X = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.X)
+			status.Pose.Orientation.Y = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Y)
+			status.Pose.Orientation.Z = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Z)
+			status.Pose.Orientation.W = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.W)
+
+			color.Green("Robot Current at (%.2f, %.2f), Battery: %d",
+				status.Pose.Position.X,
+				status.Pose.Position.Y,
+				status.BatteryLevel,
+			)
+
+			// update cache value
+			cache.Update(status)
+		}
 	}
 }

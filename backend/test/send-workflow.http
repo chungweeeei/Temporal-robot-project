@@ -38,9 +38,10 @@ Content-Type: application/json
     },
     "1768283616082": {
       "id": "1768283616082",
-      "type": "TTS",
+      "type": "Move",
       "params": {
-        "text": "新年快樂，我是Jeff"
+        "x": 6.0,
+        "y": 6.0
       },
       "transitions": {
         "next": "1768283616083"
@@ -48,6 +49,16 @@ Content-Type: application/json
     },
     "1768283616083": {
       "id": "1768283616083",
+      "type": "TTS",
+      "params": {
+        "text": "新年快樂，我是Jeff"
+      },
+      "transitions": {
+        "next": "1768283616084"
+      }
+    },
+    "1768283616084": {
+      "id": "1768283616084",
       "type": "Head",
       "params": {
         "angle": 45.0
@@ -74,7 +85,7 @@ Content-Type: application/json
       "type": "Start",
       "params": {},
       "transitions": {
-        "next": "1768283616083"
+        "next": "1768283616081"
       }
     },
     "end": {
@@ -83,11 +94,12 @@ Content-Type: application/json
       "params": {},
       "transitions": {}
     },
-    "1768283616083": {
-      "id": "1768283616083",
-      "type": "Head",
+    "1768283616081": {
+      "id": "1768283616081",
+      "type": "Move",
       "params": {
-        "angle": 0.0
+        "x": 3.0,
+        "y": 3.0
       },
       "transitions": {
         "next": "end"

@@ -56,26 +56,18 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 			// TODO: send stop command to robot?
 			return "", ctx.Err()
 		case <-ticker.C:
-			// 1. fetch current robot status
 			status, err := ra.GetStatus(ctx)
 			if err != nil {
-				logger.Warn("Failed to poll robot status", "error", err)
+				logger.Error("Failed to get robot status during move", "error", err)
 				continue
 			}
 
-			if status.Status.Code != 0 {
-				return "", fmt.Errorf("robot reported error during move: code %d", status.Status.Code)
+			distance := ((status.Pose.Position.X - targetX) * (status.Pose.Position.X - targetX)) + ((status.Pose.Position.Y - targetY) * (status.Pose.Position.Y - targetY))
+			if distance < 0.01 {
+				return "Robot reached target location", nil
 			}
 
-			// 2. send heartbeart, tell temporal server we are still alive
-			activity.RecordHeartbeat(ctx, fmt.Sprintf("Robot currently at (%f, %f)", status.X, status.Y))
-			if !status.IsMoving {
-				// mock failure condition
-				// if targetX == 5.0 && targetY == 5.0 {
-				// 	return "", fmt.Errorf("robot move failed")
-				// }
-				return "move completed", nil
-			}
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("Robot currently at (%f, %f)", status.Pose.Position.X, status.Pose.Position.Y))
 		}
 	}
 

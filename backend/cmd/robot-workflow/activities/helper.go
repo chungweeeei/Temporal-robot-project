@@ -3,7 +3,6 @@ package activities
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
@@ -15,20 +14,22 @@ const (
 )
 
 func generatePayload(actionType string, data any) ([]byte, error) {
-	req := pkg.ServiceRequest{
-		Op:      "call_service",
-		Service: "/api/system",
-		Type:    "custom_msgs/srv/Api",
-		Args: struct {
+
+	var req pkg.ServiceRequest
+	switch actionType {
+	case "Standup", "Sitdown", "Move", "TTS", "Status":
+		req.Op = "call_service"
+		req.Service = "/api/system"
+		req.Type = "custom_msgs/srv/Api"
+		req.Args = struct {
 			Data any `json:"data"`
 		}{
 			Data: data,
-		},
-	}
-	if actionType == "head" {
+		}
+	case "Head":
+		req.Op = "call_service"
 		req.Service = "/set_angle_tag"
 		req.Type = "custom_msgs/srv/SetFloat"
-
 		req.Args = struct {
 			Data any `json:"data"`
 		}{
@@ -48,9 +49,6 @@ func parseResponse(msg []byte) (string, error) {
 	var resp pkg.ServiceResponse
 	if err := json.Unmarshal(msg, &resp); err != nil {
 		return "", err
-	}
-	if !resp.Result {
-		return "", fmt.Errorf("server error")
 	}
 	return resp.Values.Data, nil
 }

@@ -1,25 +1,36 @@
 package robot
 
-type BaseRequestArgs struct {
-	ApiID int `json:"api_id"`
+import (
+	"log"
+	"os"
+	"sync"
+)
+
+type RobotState struct {
+	BatteryLevel int
+	// [New]
+	X           float64
+	Y           float64
+	Orientation float64
+}
+type MockRobot struct {
+	Mu       sync.Mutex
+	State    RobotState
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
 }
 
-type BaseResponse struct {
-	ApiID  int          `json:"api_id"`
-	Status StatusDetail `json:"status"`
-}
-
-type StatusDetail struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-type RobotStateResponse struct {
-	ApiID         int          `json:"api_id"`
-	CurrentAction int          `json:"current_action"`
-	BatteryLevel  int          `json:"battery_level"`
-	X             float64      `json:"x"`
-	Y             float64      `json:"y"`
-	IsMoving      bool         `json:"is_moving"`
-	Status        StatusDetail `json:"status"`
+func New() *MockRobot {
+	r := &MockRobot{
+		Mu: sync.Mutex{},
+		State: RobotState{
+			BatteryLevel: 30,
+			X:            0.0,
+			Y:            0.0,
+			Orientation:  0.0,
+		},
+		InfoLog:  log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime),
+		ErrorLog: log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	return r
 }

@@ -2,46 +2,80 @@ package activities
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
+	"sync"
+	"time"
+)
+
+var (
+	ErrStatusNotAvailable = errors.New("robot status not available yet")
+	ErrStatusStale        = errors.New("robot status is stale")
 )
 
 type RobotStatus struct {
-	ApiID         int     `json:"api_id"`
-	CurrentAction int     `json:"current_action"`
-	BatteryLevel  int     `json:"battery_level"`
-	X             float64 `json:"x"`
-	Y             float64 `json:"y"`
-	IsMoving      bool    `json:"is_moving"`
-	Status        struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"status"`
+	ApiID        int `json:"api_id"`
+	BatteryLevel int `json:"battery_level"`
+	Pose         struct {
+		Orientation struct {
+			W float64 `json:"w"`
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+			Z float64 `json:"z"`
+		} `json:"orientation"`
+		Position struct {
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+			Z float64 `json:"z"`
+		} `json:"position"`
+	} `json:"pose"`
+}
+
+// Shared Status Cache (Backgroud goroutine updates this cache periodically)
+type StatusCache struct {
+	mu          sync.RWMutex
+	status      RobotStatus
+	lastUpdated time.Time
+	initialized bool
+}
+
+func NewStatusCache() *StatusCache {
+	return &StatusCache{}
+}
+
+func (c *StatusCache) Get() (RobotStatus, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !c.initialized {
+		return RobotStatus{}, ErrStatusNotAvailable
+	}
+
+	if time.Since(c.lastUpdated) > 10*time.Second {
+		return c.status, ErrStatusStale
+	}
+
+	return c.status, nil
+}
+
+func (c *StatusCache) Update(s RobotStatus) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.status = s
+	c.lastUpdated = time.Now()
+	c.initialized = true
+}
+
+func (c *StatusCache) IsReady() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.initialized
 }
 
 func (ra *RobotActivities) GetStatus(ctx context.Context) (RobotStatus, error) {
 
-	return executeWithHeartbeat(ctx, func() (RobotStatus, error) {
+	if ra.StatusCache == nil {
+		return RobotStatus{}, ErrStatusNotAvailable
+	}
 
-		data := map[string]int{
-			"api_id": RobotStatusID,
-		}
-
-		dataBytes, err := json.Marshal(data)
-		if err != nil {
-			return RobotStatus{}, err
-		}
-
-		responseStr, err := ra.Client.CallService(ctx, "status", string(dataBytes))
-		if err != nil {
-			return RobotStatus{}, err
-		}
-
-		var status RobotStatus
-		err = json.Unmarshal([]byte(responseStr), &status)
-		if err != nil {
-			return RobotStatus{}, err
-		}
-
-		return status, nil
-	})
+	return ra.StatusCache.Get()
 }

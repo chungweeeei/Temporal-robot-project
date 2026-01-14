@@ -4,13 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"go.temporal.io/sdk/activity"
 )
 
 func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{}) (string, error) {
-
-	logger := activity.GetLogger(ctx)
 
 	text, ok := params["text"].(string)
 	if !ok {
@@ -31,8 +27,6 @@ func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{
 		if err != nil {
 			return "", err
 		}
-
-		logger.Info("Call TTS Service")
 
 		return ra.Client.CallService(ctx, "TTS", string(dataBytes))
 	})
