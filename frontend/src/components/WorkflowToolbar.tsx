@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
 
 
@@ -12,6 +10,8 @@ interface WorkflowToolbarProps {
   workflows: { workflow_id: string; workflow_name: string }[];
   currentWorkflowId: string;
   onWorkflowSelect: (workflowId: string) => void;
+
+  workflowStatus: WorkflowStatus; 
 }
 
 export default function WorkflowToolbar({ 
@@ -20,9 +20,9 @@ export default function WorkflowToolbar({
   onTrigger,
   workflows,
   currentWorkflowId,
-  onWorkflowSelect
+  onWorkflowSelect,
+  workflowStatus = 'idle'
 }: WorkflowToolbarProps) {
-  const [status, setStatus] = useState<WorkflowStatus>('idle');
 
   const getStatusColor = (s: WorkflowStatus) => {
     switch (s) {
@@ -105,9 +105,9 @@ export default function WorkflowToolbar({
         <div className="flex gap-4 shrink-0 items-center">
             
             {/* Workflow Status Display */}
-            <div className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${getStatusColor(status)}`}>
-               <div className={`w-2 h-2 rounded-full ${status === 'running' ? 'bg-blue-500 animate-pulse' : status === 'paused' ? 'bg-yellow-500' : status === 'completed' ? 'bg-green-500' : status === 'failed' ? 'bg-red-500' : 'bg-gray-400'}`}></div>
-               Status: {status}
+            <div className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${getStatusColor(workflowStatus)}`}>
+               <div className={`w-2 h-2 rounded-full ${workflowStatus === 'running' ? 'bg-blue-500 animate-pulse' : workflowStatus === 'paused' ? 'bg-yellow-500' : workflowStatus === 'completed' ? 'bg-green-500' : workflowStatus === 'failed' ? 'bg-red-500' : 'bg-gray-400'}`}></div>
+               Status: {workflowStatus}
             </div>
 
             {/* Separator */}
@@ -117,13 +117,13 @@ export default function WorkflowToolbar({
             <div className="flex gap-1 border-r border-gray-200 pr-3 mr-1">
                <button 
                  onClick={() => { console.log("Stop clicked"); }} 
-                 disabled={status === 'idle'}
+                 disabled={workflowStatus === 'idle'}
                  className="px-3 py-1.5 bg-white text-red-600 border border-gray-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                >
                   <span className="w-2 h-2 bg-red-500 rounded-sm"></span> Stop
                </button>
                
-               {status === 'paused' ? (
+               {workflowStatus === 'paused' ? (
                  <button 
                    onClick={() => { console.log("Resume clicked"); }} 
                    className="px-3 py-1.5 bg-white text-green-600 border border-gray-200 hover:bg-green-50 rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
@@ -133,7 +133,7 @@ export default function WorkflowToolbar({
                ) : (
                  <button 
                    onClick={onTrigger} 
-                   disabled={status === 'running'}
+                   disabled={workflowStatus === 'running'}
                    className="px-3 py-1.5 bg-white text-indigo-600 border border-gray-200 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                  >
                     <span className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-indigo-600 border-b-[4px] border-b-transparent ml-0.5"></span> Run

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type OnNodesChange, type OnEdgesChange, type OnNodesDelete, applyNodeChanges, applyEdgeChanges, type NodeMouseHandler, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -10,13 +10,14 @@ import ConditionNode from './components/nodes/ConditionNode';
 import ActionNode from './components/nodes/ActionNode';
 import StartNode from './components/nodes/StartNode';
 import EndNode from './components/nodes/EndNode';
-import WorkflowToolbar from './components/WorkflowToolbar';
+import WorkflowToolbar, {type WorkflowStatus} from './components/WorkflowToolbar';
 import NodeEditorModal from './components/NodeEditorModal';
 import { transformBackToReactFlow, transformToDagPayload } from './utils/dagAdapter';
 import { useSaveWorkflow } from './hooks/useSaveWorkflow';
 import { useTriggerWorkflow } from './hooks/useTriggerWorkflow';
 import { useFetchWorkflow } from './hooks/useFetchWorkflow';
 import { useFetchWorkflowById } from './hooks/useFetchWorkflowById';
+import { useFetchWorkflowStatus } from './hooks/useFetchWorkflowStatus';
 import { type WorkflowPayload } from './types/schema';
 
 // --- 註冊 Custom Nodes ---
@@ -128,6 +129,43 @@ function Scheduler() {
     });
   }
 
+  // 新增一個 state 來標記是否正在監控執行狀態
+  const [isMonitoring, setIsMonitoring] = useState(false);
+
+  // 3. Status Query (依賴 currentWorkflowId 和 isMonitoring)
+  const { data: statusData } = useFetchWorkflowStatus(currentWorkflowId, isMonitoring);
+  const toolbarStatus: WorkflowStatus = useMemo(() => {
+    if (!statusData) return isMonitoring ? 'running' : 'idle';
+    
+    const step = statusData.current_step;
+
+    if (step === 'End') return 'completed';
+    if (step === 'Failed') return 'failed';
+    
+    return isMonitoring ? 'running' : 'idle';
+  }, [statusData, isMonitoring]);
+
+  // Effect: Auto-stop monitoring
+  useEffect(() => {
+     if (toolbarStatus === 'completed' || toolbarStatus === 'failed') {
+         // 給使用者一點時間看到狀態變化再停止 polling
+         const timer = setTimeout(() => setIsMonitoring(false), 2000);
+         return () => clearTimeout(timer);
+     }
+  }, [toolbarStatus]);
+  
+  // Effect: Log status changes
+  useEffect(() => {
+    if (!statusData) return;
+    console.log("Current Workflow Status:", statusData);
+    const { current_step } = statusData; 
+    // 假設 "Workflow completed successfully" 是你的結束訊息
+    if (current_step === "End" || current_step === "Failed") {
+        setIsMonitoring(false);
+    }
+  }, [statusData])
+
+
   const triggerMutation = useTriggerWorkflow();
   const handleTriggerWorkflow = () => {
     const payload = transformToDagPayload(currentWorkflowId, currentWorkflowName, nodes, edges);
@@ -135,9 +173,11 @@ function Scheduler() {
     triggerMutation.mutate(payload, {
       onSuccess: () => {
          alert('Workflow triggered successfully!');
+         setIsMonitoring(true);
       },
       onError: (error) => {
         alert(`Failed to trigger: ${error.message}`);
+        setIsMonitoring(false);
       }
     });
   }
@@ -189,6 +229,7 @@ function Scheduler() {
         }))}
         currentWorkflowId={currentWorkflowId}
         onWorkflowSelect={handleWorkflowSelect}
+        workflowStatus={toolbarStatus}
       />
 
       <div className="flex-1">

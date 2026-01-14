@@ -41,6 +41,24 @@ export async function fetchWorkflowById(workflowId: string){
     return response.data;
 }
 
+export async function fetchWorkflowStatus(workflowId: string){
+
+    const response = await axios.get(
+        `http://localhost:3000/api/v1/workflows/${workflowId}/status`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    )
+
+    if (response.status !== 200){
+        throw new Error(`Failed to fetch workflow status: ${response.statusText}`);
+    }
+    
+    return response.data;
+}
+
 
 export async function saveWorkflow(data: WorkflowPayload){
 
