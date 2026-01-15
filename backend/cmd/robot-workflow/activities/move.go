@@ -57,7 +57,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 	for {
 		select {
 		case <-ctx.Done():
-			color.Red("Move activity cancelled, stopping robot monitoring")
+			color.Red("[%s] Move activity cancelled, stopping robot monitoring. \n", time.Now().Format(time.RFC3339))
 
 			// 1. 建立一個不依賴原本 ctx 的新 context (避免因為 cancelled 而發送失敗)
 			stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -65,8 +65,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 
 			// 2. 準備 Stop Command 的 Payload
 			stopData := map[string]interface{}{
-				"api_id":     RobotStopActionID, // 使用 configs.go 中定義的 ID (5000)
-				"mission_id": uuid.New().String(),
+				"api_id": RobotStopActionID,
 			}
 			stopBytes, _ := json.Marshal(stopData)
 
@@ -75,11 +74,9 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 			_, err := ra.Client.CallService(stopCtx, "Stop", string(stopBytes))
 			if err != nil {
 				logger.Error("Failed to send stop command during cancellation", "error", err)
-			} else {
-				logger.Info("Stop command sent successfully")
 			}
-
 			return "", ctx.Err()
+
 		case <-ticker.C:
 			status, err := ra.GetStatus(ctx)
 			if err != nil {

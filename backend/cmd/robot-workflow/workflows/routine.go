@@ -38,6 +38,8 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 	var cancelCurrentActivity func()
 	signalChan := workflow.GetSignalChannel(ctx, "control-signal")
 
+	currentStep := "Initializing"
+
 	// Background listener for control signal
 	workflow.Go(ctx, func(ctx workflow.Context) {
 		for {
@@ -56,8 +58,10 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		}
 	})
 
-	currentStep := "Initializing"
 	workflow.SetQueryHandler(ctx, "get_step", func() (string, error) {
+		if pause {
+			return "Paused", nil
+		}
 		return currentStep, nil
 	})
 
@@ -83,7 +87,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		case pkg.ActivityStandUp, pkg.ActivitySitDown, pkg.ActivityHead, pkg.ActivityMove, pkg.ActivityTTS:
 			// Execute robot activity
 			var result string
-			err := workflow.ExecuteActivity(childCtx, string(currentNode.Type), currentNode.Params).Get(ctx, &result)
+			err := workflow.ExecuteActivity(childCtx, string(currentNode.Type), currentNode.Params).Get(childCtx, &result)
 
 			// clean up cancle function
 			cancelCurrentActivity = nil
@@ -91,6 +95,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 
 			if temporal.IsCanceledError(err) {
 				logger.Info("Activity was cancelled due to pause signal", "activity", string(currentNode.Type))
+				currentStep = "Paused"
 				continue
 			}
 

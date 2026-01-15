@@ -97,3 +97,41 @@ export async function triggerWorkflow(data: WorkflowPayload){
 
     return response.data;
 }
+
+export async function pauseWorkflow(workflowId: string){
+
+    const response = await axios.post(
+        `http://localhost:3000/api/v1/workflows/${workflowId}/pause`,
+        {},
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200){
+        throw new Error(`Failed to pause workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}
+
+export async function resumeWorkflow(workflowId: string){
+
+    const response = await axios.post(
+        `http://localhost:3000/api/v1/workflows/${workflowId}/resume`,
+        {},
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200){
+        throw new Error(`Failed to resume workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}

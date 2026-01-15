@@ -5,6 +5,8 @@ interface WorkflowToolbarProps {
   onAddNode: (type: string) => void;
   onSave: () => void;
   onTrigger: () => void;
+  onPause: () => void;
+  onResume: () => void;
 
   // 新增三個屬性
   workflows: { workflow_id: string; workflow_name: string }[];
@@ -18,6 +20,8 @@ export default function WorkflowToolbar({
   onAddNode, 
   onSave,
   onTrigger,
+  onPause,
+  onResume,
   workflows,
   currentWorkflowId,
   onWorkflowSelect,
@@ -116,8 +120,8 @@ export default function WorkflowToolbar({
             {/* Control Group */}
             <div className="flex gap-1 border-r border-gray-200 pr-3 mr-1">
                <button 
-                 onClick={() => { console.log("Stop clicked"); }} 
-                 disabled={workflowStatus === 'idle'}
+                 onClick={onPause}
+                 disabled={workflowStatus === 'paused'}
                  className="px-3 py-1.5 bg-white text-red-600 border border-gray-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                >
                   <span className="w-2 h-2 bg-red-500 rounded-sm"></span> Stop
@@ -125,7 +129,7 @@ export default function WorkflowToolbar({
                
                {workflowStatus === 'paused' ? (
                  <button 
-                   onClick={() => { console.log("Resume clicked"); }} 
+                   onClick={onResume} 
                    className="px-3 py-1.5 bg-white text-green-600 border border-gray-200 hover:bg-green-50 rounded shadow-sm font-medium text-sm transition-colors flex items-center gap-1"
                  >
                     <span className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-green-600 border-b-[4px] border-b-transparent ml-0.5"></span> Resume
@@ -141,7 +145,13 @@ export default function WorkflowToolbar({
                )}
             </div>
 
-            <button onClick={onSave} className="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 shadow-sm font-medium transition-colors text-sm">Save</button>
+            <button 
+              onClick={onSave} 
+              disabled={workflowStatus === 'running' || workflowStatus === 'paused'}
+              className="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 shadow-sm font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Save
+            </button>
         </div>
       </div>
   );

@@ -18,6 +18,7 @@ import { useTriggerWorkflow } from './hooks/useTriggerWorkflow';
 import { useFetchWorkflow } from './hooks/useFetchWorkflow';
 import { useFetchWorkflowById } from './hooks/useFetchWorkflowById';
 import { useFetchWorkflowStatus } from './hooks/useFetchWorkflowStatus';
+import { usePauseWorkflow, useResumeWorkflow } from './hooks/useControlWorkflow';
 import { type WorkflowPayload } from './types/schema';
 
 // --- 註冊 Custom Nodes ---
@@ -143,6 +144,7 @@ function Scheduler() {
 
     if (step === 'End') return 'completed';
     if (step === 'Failed') return 'failed';
+    if (step === 'Paused') return 'paused';
     
     return isMonitoring ? 'running' : 'idle';
   }, [statusData, isMonitoring]);
@@ -180,6 +182,30 @@ function Scheduler() {
       onError: (error) => {
         alert(`Failed to trigger: ${error.message}`);
         setIsMonitoring(false);
+      }
+    });
+  }
+
+  const pauseWorkflow = usePauseWorkflow();
+  const handlePauseWorkflow = () => {
+    pauseWorkflow.mutate(currentWorkflowId, {
+      onSuccess: () => {
+        alert('Workflow paused successfully!');
+      },
+      onError: (error) => {
+        alert(`Failed to pause: ${error.message}`);
+      }
+    });
+  }
+
+  const resumeWorkflow = useResumeWorkflow();
+  const handleResumeWorkflow = () => {
+    resumeWorkflow.mutate(currentWorkflowId, {
+      onSuccess: () => {
+        alert('Workflow resumed successfully!');
+      },
+      onError: (error) => {
+        alert(`Failed to resume: ${error.message}`);
       }
     });
   }
@@ -224,6 +250,8 @@ function Scheduler() {
         onAddNode={handleAddNode}
         onSave={handleSaveWorkflow}
         onTrigger={handleTriggerWorkflow}
+        onPause={handlePauseWorkflow}
+        onResume={handleResumeWorkflow}
         // Pass List and Selection Handler
         workflows={workflows.map((w: WorkflowPayload) => ({ 
             workflow_id: w.workflow_id || '', 

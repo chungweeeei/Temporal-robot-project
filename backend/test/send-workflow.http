@@ -127,9 +127,11 @@ Content-Type: application/json
     },
     "1768283616081": {
       "id": "1768283616081",
-      "type": "TTS",
+      "type": "Move",
       "params": {
-        "text": "Hello, I'm Jeff"
+        "x": 3.0,
+        "y": 3.0,
+        "orientation": 0.0
       },
       "transitions": {
         "next": "end"

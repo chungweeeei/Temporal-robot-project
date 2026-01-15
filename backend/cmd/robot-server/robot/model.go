@@ -13,7 +13,7 @@ const (
 	MissionCodeStart
 	MissionSuccess
 	MissionFailed
-	MissionAborted
+	MissionAbort
 )
 
 type RobotState struct {

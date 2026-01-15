@@ -116,6 +116,10 @@ func (r *MockRobot) Move(missionID string, targetX, targetY float64) {
 		select {
 		case <-r.StopChan:
 			r.InfoLog.Println("Move command stopped by Stop signal")
+			r.Mu.Lock()
+			r.State.Mission.Code = MissionAbort
+			r.State.Mission.Message = "ABORT"
+			r.Mu.Unlock()
 			return
 		default:
 		}

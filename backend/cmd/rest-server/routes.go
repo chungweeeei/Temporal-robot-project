@@ -29,6 +29,8 @@ func (app *Config) routes() http.Handler {
 		apiV1.GET("/workflows/:id", app.getWorkflowById)
 		apiV1.GET("/workflows/:id/status", app.getWorkflowStatus)
 		apiV1.POST("/workflows/:id/trigger", app.triggerWorkflow)
+		apiV1.POST("/workflows/:id/pause", app.pauseWorkflow)
+		apiV1.POST("/workflows/:id/resume", app.resumeWorkflow)
 	}
 
 	return e

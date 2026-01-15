@@ -136,6 +136,48 @@ func (app *Config) triggerWorkflow(c *gin.Context) {
 	})
 }
 
+func (app *Config) pauseWorkflow(c *gin.Context) {
+
+	workflowID := c.Param("id")
+	if workflowID == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Workflow Id is required"})
+		return
+	}
+
+	err := app.TemporalClient.SignalWorkflow(context.Background(), workflowID, "", "control-signal", "pause")
+	if err != nil {
+		app.ErrorLog.Println("Unable to signal workflow:", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "Unable to signal workflow"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Pause workflow",
+		"workflow_id": workflowID,
+	})
+}
+
+func (app *Config) resumeWorkflow(c *gin.Context) {
+
+	workflowID := c.Param("id")
+	if workflowID == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Workflow Id is required"})
+		return
+	}
+
+	err := app.TemporalClient.SignalWorkflow(context.Background(), workflowID, "", "control-signal", "resume")
+	if err != nil {
+		app.ErrorLog.Println("Unable to signal workflow:", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "Unable to signal workflow"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Resume workflow",
+		"workflow_id": workflowID,
+	})
+}
+
 func (app *Config) getWorkflows(c *gin.Context) {
 	workflows, err := app.Model.Workflow.Get()
 	if err != nil {
