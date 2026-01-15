@@ -5,6 +5,7 @@ const (
 	RobotMoveCommandID   = 1012
 	RobotMotionControlID = 1013
 	RobotTTSCommandID    = 1014
+	RobotStopActionID    = 5000
 )
 
 const (

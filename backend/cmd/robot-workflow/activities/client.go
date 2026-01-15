@@ -39,20 +39,12 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			conn.Close()
-		case <-doneCh:
-		}
-	}()
-	defer conn.Close()
-
 	payload, err := generatePayload(actionType, data)
 	if err != nil {
 		return "", err
 	}
 
+	color.Cyan("Sending Message", "payload", string(payload))
 	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
 		return "", fmt.Errorf("write failed: %v", err)
 	}
@@ -76,7 +68,8 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 		}
 		return parseResponse(res.data)
 	case <-ctx.Done():
-		fmt.Println("Context done, cancelling read")
+		color.Green("Activity cancelled, sending stop command to robot")
+		conn.Close()
 		return "", ctx.Err()
 	}
 }

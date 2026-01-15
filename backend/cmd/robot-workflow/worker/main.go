@@ -12,7 +12,6 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/helper"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
-	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -162,12 +161,6 @@ func subscribeLoop(
 			status.Pose.Orientation.Y = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Y)
 			status.Pose.Orientation.Z = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Z)
 			status.Pose.Orientation.W = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.W)
-
-			color.Green("Robot Current at (%.2f, %.2f), Battery: %d",
-				status.Pose.Position.X,
-				status.Pose.Position.Y,
-				status.BatteryLevel,
-			)
 
 			// update cache value
 			cache.Update(status)

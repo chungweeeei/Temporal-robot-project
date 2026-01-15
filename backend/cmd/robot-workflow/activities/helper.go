@@ -17,7 +17,7 @@ func generatePayload(actionType string, data any) ([]byte, error) {
 
 	var req pkg.ServiceRequest
 	switch actionType {
-	case "Standup", "Sitdown", "Move", "TTS", "Status":
+	case "Standup", "Sitdown", "Move", "TTS", "Status", "Stop":
 		req.Op = "call_service"
 		req.Service = "/api/system"
 		req.Type = "custom_msgs/srv/Api"

@@ -96,9 +96,10 @@ Content-Type: application/json
     },
     "1768283616081": {
       "id": "1768283616081",
-      "type": "Head",
+      "type": "Move",
       "params": {
-        "angle": 45.0
+        "x": 3.0,
+        "y": 3.0
       },
       "transitions": {
         "next": "end"

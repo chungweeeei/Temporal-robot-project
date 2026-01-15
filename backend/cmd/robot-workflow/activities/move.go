@@ -53,7 +53,6 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 	for {
 		select {
 		case <-ctx.Done():
-			// TODO: send stop command to robot?
 			return "", ctx.Err()
 		case <-ticker.C:
 			status, err := ra.GetStatus(ctx)
@@ -66,7 +65,6 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 			if distance < 0.01 {
 				return "Robot reached target location", nil
 			}
-
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("Robot currently at (%f, %f)", status.Pose.Position.X, status.Pose.Position.Y))
 		}
 	}

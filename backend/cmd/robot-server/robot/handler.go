@@ -62,6 +62,31 @@ func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceRe
 	}
 }
 
+func (r *MockRobot) HandleStopCommand(service string, request []byte) pkg.ServiceResponse {
+
+	// send stop signal to robot
+	r.StopChan <- true
+
+	// return success response
+	respData := BaseResponse{
+		ApiID: RobotStopActionID,
+		Status: StatusDetail{
+			Code:    SUCCESS,
+			Message: "Stop command accepted",
+		},
+	}
+	bytes, _ := json.Marshal(respData)
+	return pkg.ServiceResponse{
+		Op:      "service_response",
+		Service: service,
+		Values: struct {
+			Data string `json:"data"`
+		}{
+			Data: string(bytes),
+		},
+	}
+}
+
 func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.ServiceResponse {
 
 	var motionArgs struct {

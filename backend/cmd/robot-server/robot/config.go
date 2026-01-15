@@ -20,6 +20,8 @@ const (
 	RobotMoveCommandID   = 1012
 	RobotMotionControlID = 1013
 	RobotTTSCommandID    = 1014
+	// TODO: define stop action ID temporally for testing pause/resume feature
+	RobotStopActionID = 5000
 )
 
 const (

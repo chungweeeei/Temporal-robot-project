@@ -63,6 +63,8 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 			return r.HandleMotionControl(request.Service, requestDataBytes)
 		case RobotTTSCommandID:
 			return r.HandleTTSCommand(request.Service, requestDataBytes)
+		case RobotStopActionID:
+			return r.HandleStopCommand(request.Service, requestDataBytes)
 		default:
 			return r.HandleUnknownRequest(args.ApiID, request.Service)
 		}
@@ -103,22 +105,28 @@ func (r *MockRobot) Move(targetX, targetY float64) {
 	const durationSeconds = 60
 	const updatesPerSecond = 10
 	steps := durationSeconds * updatesPerSecond
-
 	interval := time.Duration(1000/updatesPerSecond) * time.Millisecond
 
-	for i := 1; i < steps; i++ {
-		time.Sleep(interval)
+	// listen for the stop channel
+	select {
+	case <-r.StopChan:
+		r.InfoLog.Println("Move operation stopped before starting")
+		return
+	default:
+		for i := 1; i < steps; i++ {
+			time.Sleep(interval)
 
-		r.Mu.Lock()
-		progress := float64(i) / float64(steps)
+			r.Mu.Lock()
+			progress := float64(i) / float64(steps)
 
-		r.State.X = startX + (targetX-startX)*progress
-		r.State.Y = startY + (targetY-startY)*progress
+			r.State.X = startX + (targetX-startX)*progress
+			r.State.Y = startY + (targetY-startY)*progress
 
-		if i%updatesPerSecond == 0 {
-			fmt.Printf("Robot moving... (%.0f%%) Pos(%.2f, %.2f)\n", progress*100, r.State.X, r.State.Y)
+			if i%updatesPerSecond == 0 {
+				fmt.Printf("Robot moving... (%.0f%%) Pos(%.2f, %.2f)\n", progress*100, r.State.X, r.State.Y)
+			}
+			r.Mu.Unlock()
 		}
-		r.Mu.Unlock()
 	}
 
 	r.Mu.Lock()

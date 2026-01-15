@@ -18,6 +18,7 @@ type MockRobot struct {
 	State    RobotState
 	InfoLog  *log.Logger
 	ErrorLog *log.Logger
+	StopChan chan bool
 }
 
 func New() *MockRobot {
@@ -31,6 +32,7 @@ func New() *MockRobot {
 		},
 		InfoLog:  log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime),
 		ErrorLog: log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile),
+		StopChan: make(chan bool),
 	}
 	return r
 }
