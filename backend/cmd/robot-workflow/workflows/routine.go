@@ -38,7 +38,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 	var cancelCurrentActivity func()
 	signalChan := workflow.GetSignalChannel(ctx, "control-signal")
 
-	// Background listener for control signals
+	// Background listener for control signal
 	workflow.Go(ctx, func(ctx workflow.Context) {
 		for {
 			var signal string
@@ -68,7 +68,7 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		// 這樣在任何 Activity 執行"前"，都會檢查是否暫停
 		workflow.Await(ctx, func() bool { return !pause })
 
-		// Register cancel context
+		// Register children cancel context
 		childCtx, cancel := workflow.WithCancel(ctx)
 		cancelCurrentActivity = cancel
 

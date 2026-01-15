@@ -108,25 +108,25 @@ func (r *MockRobot) Move(targetX, targetY float64) {
 	interval := time.Duration(1000/updatesPerSecond) * time.Millisecond
 
 	// listen for the stop channel
-	select {
-	case <-r.StopChan:
-		r.InfoLog.Println("Move operation stopped before starting")
-		return
-	default:
-		for i := 1; i < steps; i++ {
-			time.Sleep(interval)
-
-			r.Mu.Lock()
-			progress := float64(i) / float64(steps)
-
-			r.State.X = startX + (targetX-startX)*progress
-			r.State.Y = startY + (targetY-startY)*progress
-
-			if i%updatesPerSecond == 0 {
-				fmt.Printf("Robot moving... (%.0f%%) Pos(%.2f, %.2f)\n", progress*100, r.State.X, r.State.Y)
-			}
-			r.Mu.Unlock()
+	for i := 1; i < steps; i++ {
+		select {
+		case <-r.StopChan:
+			r.InfoLog.Println("Move command stopped by Stop signal")
+			return
+		default:
 		}
+		time.Sleep(interval)
+
+		r.Mu.Lock()
+		progress := float64(i) / float64(steps)
+
+		r.State.X = startX + (targetX-startX)*progress
+		r.State.Y = startY + (targetY-startY)*progress
+
+		if i%updatesPerSecond == 0 {
+			fmt.Printf("Robot moving... (%.0f%%) Pos(%.2f, %.2f)\n", progress*100, r.State.X, r.State.Y)
+		}
+		r.Mu.Unlock()
 	}
 
 	r.Mu.Lock()
