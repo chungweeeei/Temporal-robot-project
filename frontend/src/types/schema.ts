@@ -14,6 +14,7 @@ export interface BaseParams {
 export interface MoveParams extends BaseParams {
   x: number;
   y: number;
+  orientation: number;
 }
 
 export interface SleepParams extends BaseParams {

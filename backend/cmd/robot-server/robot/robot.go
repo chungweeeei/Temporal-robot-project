@@ -90,13 +90,17 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 	}
 }
 
-func (r *MockRobot) Move(targetX, targetY float64) {
+func (r *MockRobot) Move(missionID string, targetX, targetY float64) {
 
 	fmt.Printf("Background move started: Target (%f, %f)\n", targetX, targetY)
 
 	r.Mu.Lock()
 	startX := r.State.X
 	startY := r.State.Y
+	// update mission status
+	r.State.MissionID = missionID
+	r.State.Mission.Code = MissionCodeStart
+	r.State.Mission.Message = "START"
 	r.Mu.Unlock()
 
 	// simple simulation: move step by step
@@ -132,6 +136,8 @@ func (r *MockRobot) Move(targetX, targetY float64) {
 	r.Mu.Lock()
 	r.State.X = targetX
 	r.State.Y = targetY
+	r.State.Mission.Code = MissionSuccess
+	r.State.Mission.Message = "SUCCESS"
 	r.Mu.Unlock()
 
 	r.InfoLog.Printf("Robot reached target location (%.2f, %.2f)\n", targetX, targetY)

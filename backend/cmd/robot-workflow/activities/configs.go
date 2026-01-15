@@ -2,7 +2,7 @@ package activities
 
 const (
 	RobotStatusID        = 1009
-	RobotMoveCommandID   = 1012
+	RobotMoveCommandID   = 1005
 	RobotMotionControlID = 1013
 	RobotTTSCommandID    = 1014
 	RobotStopActionID    = 5000

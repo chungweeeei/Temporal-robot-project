@@ -5,7 +5,7 @@ interface NodeEditorModalProps {
   isOpen: boolean;
   node: Node | null;
   onClose: () => void;
-  onSave: (params: BaseParams | MoveParams | SleepParams ) => void;
+  onSave: (params: BaseParams | MoveParams | SleepParams | HeadParams | TTSParams) => void;
   onDelete: () => void;
 }
 
@@ -26,7 +26,8 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
     if (type === 'Move') {
       params = { 
         x: Number(formData.get('x')), 
-        y: Number(formData.get('y')) 
+        y: Number(formData.get('y')),
+        orientation: Number(formData.get('orientation'))
       };
     } else if (type === 'Sleep') {
       params = { duration: Number(formData.get('duration')) };
@@ -52,11 +53,15 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">X Coordinate:</label>
-              <input name="x" type="number" defaultValue={(data.params as MoveParams).x} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+              <input name="x" type="number" step="0.1" defaultValue={(data.params as MoveParams).x} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Y Coordinate:</label>
-              <input name="y" type="number" defaultValue={(data.params as MoveParams).y} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+              <input name="y" type="number" step="0.1" defaultValue={(data.params as MoveParams).y} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Orientation(degree):</label>
+              <input name="orientation" type="number" step="0.1" defaultValue={(data.params as MoveParams).orientation} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </>
         )}

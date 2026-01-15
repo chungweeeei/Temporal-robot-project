@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/helper"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
+	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -36,17 +38,22 @@ func main() {
 	}
 	defer c.Close()
 
+	// check robot ip
+	robotIP := os.Getenv("ROBOT_IP")
+	if robotIP == "" {
+		robotIP = "localhost"
+	}
 	// create StatusCache instance
 	statusCache := &activities.StatusCache{}
 
 	// Background subscriber
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	go RobotStatusSubscriber(ctx, "ws://localhost:9090/", statusCache)
+	go RobotStatusSubscriber(ctx, fmt.Sprintf("ws://%s:9090/", robotIP), statusCache)
 
 	w := worker.New(c, "ROBOT_TASK_QUEUE", worker.Options{})
 
-	activities := activities.NewRobotActivities(statusCache)
+	activities := activities.NewRobotActivities(robotIP, statusCache)
 	w.RegisterWorkflow(workflows.RobotWorkflow)
 	w.RegisterActivity(activities)
 
@@ -94,6 +101,11 @@ type RawRobotStatus struct {
 			W interface{} `json:"w"`
 		} `json:"orientation"`
 	} `json:"pose"`
+	MissionID interface{} `json:"mission_id"`
+	Mission   struct {
+		Code    interface{} `json:"code"`    // string or int
+		Message interface{} `json:"message"` // string
+	} `json:"mission"`
 }
 
 func subscribeLoop(
@@ -161,6 +173,12 @@ func subscribeLoop(
 			status.Pose.Orientation.Y = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Y)
 			status.Pose.Orientation.Z = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Z)
 			status.Pose.Orientation.W = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.W)
+
+			status.MissionID = resp.DeviceStatus.MissionID.(string)
+			status.Mission.Code = activities.MissionCode(helper.ToInt(resp.DeviceStatus.Mission.Code))
+			status.Mission.Message = resp.DeviceStatus.Mission.Message.(string)
+
+			color.Green("Robot current MissionID: %s, Code: %d, Message: %s", status.MissionID, status.Mission.Code, status.Mission.Message)
 
 			// update cache value
 			cache.Update(status)

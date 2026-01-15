@@ -12,6 +12,16 @@ var (
 	ErrStatusStale        = errors.New("robot status is stale")
 )
 
+type MissionCode int
+
+const (
+	MissionCodeInit MissionCode = iota
+	MissionCodeStart
+	MissionSuccess
+	MissionFailed
+	MissionAbort
+)
+
 type RobotStatus struct {
 	ApiID        int `json:"api_id"`
 	BatteryLevel int `json:"battery_level"`
@@ -28,6 +38,11 @@ type RobotStatus struct {
 			Z float64 `json:"z"`
 		} `json:"position"`
 	} `json:"pose"`
+	MissionID string `json:"mission_id"`
+	Mission   struct {
+		Code    MissionCode `json:"code"`
+		Message string      `json:"message"`
+	} `json:"mission"`
 }
 
 // Shared Status Cache (Backgroud goroutine updates this cache periodically)

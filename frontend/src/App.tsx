@@ -67,8 +67,9 @@ function Scheduler() {
   // Handle Workflow Selection Change
   const handleWorkflowSelect = (id: string) => {
     setCurrentWorkflowId(id);
-    // 這裡我們只更新 ID，React Query 的 Hook 會自動幫我們去抓新的資料
-    // 並觸發上面的 useEffect 更新畫布
+    setCurrentWorkflowName(
+      workflows.find((w: WorkflowPayload) => w.workflow_id === id)?.workflow_name || ''
+    );
   };
 
   // --- Modal 狀態 ---
@@ -119,6 +120,7 @@ function Scheduler() {
   const handleSaveWorkflow = () => {
     const payload = transformToDagPayload(currentWorkflowId, currentWorkflowName, nodes, edges);
     // Call mutate inside the handler
+    console.log(payload);
     saveMutation.mutate(payload, {
       onSuccess: () => {
          alert('Workflow saved successfully!');
