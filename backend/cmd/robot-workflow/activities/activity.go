@@ -5,9 +5,9 @@ type RobotActivities struct {
 	StatusCache *StatusCache
 }
 
-func NewRobotActivities(statusCache *StatusCache) *RobotActivities {
+func NewRobotActivities(robotIP string, statusCache *StatusCache) *RobotActivities {
 	return &RobotActivities{
-		Client:      NewRobotClient(),
+		Client:      NewRobotClient(robotIP),
 		StatusCache: statusCache,
 	}
 }

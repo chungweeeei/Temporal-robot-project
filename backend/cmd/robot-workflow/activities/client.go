@@ -3,7 +3,6 @@ package activities
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
@@ -14,16 +13,10 @@ type RobotClient struct {
 	Dialer   WSDialer
 }
 
-func NewRobotClient() *RobotClient {
-
-	robotIP := os.Getenv("ROBOT_IP")
-	if robotIP == "" {
-		robotIP = "localhost"
-	}
-	robotURL := fmt.Sprintf("ws://%s:9090", robotIP)
+func NewRobotClient(robotIP string) *RobotClient {
 
 	return &RobotClient{
-		robotURL: robotURL,
+		robotURL: fmt.Sprintf("ws://%s:9090", robotIP),
 		Dialer: &DefaultDialer{
 			Dialer: websocket.DefaultDialer,
 		},
@@ -53,6 +46,7 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 		return "", err
 	}
 
+	color.Cyan("Sending Message", "payload", string(payload))
 	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
 		return "", fmt.Errorf("write failed: %v", err)
 	}

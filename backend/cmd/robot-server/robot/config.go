@@ -17,7 +17,7 @@ type ActionID int
 
 const (
 	RobotStatusID        = 1009
-	RobotMoveCommandID   = 1012
+	RobotMoveCommandID   = 1005
 	RobotMotionControlID = 1013
 	RobotTTSCommandID    = 1014
 )

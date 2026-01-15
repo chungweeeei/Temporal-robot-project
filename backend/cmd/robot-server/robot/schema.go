@@ -30,6 +30,11 @@ type RobotStatus struct {
 			Z float64 `json:"z"`
 		} `json:"position"`
 	} `json:"pose"`
+	MissionID string `json:"mission_id"`
+	Mission   struct {
+		Code    MissionCode `json:"code"`
+		Message string      `json:"message"`
+	} `json:"mission"`
 	Timestamp string `json:"timestamp"`
 }
 

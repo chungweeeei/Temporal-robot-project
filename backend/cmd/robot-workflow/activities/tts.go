@@ -18,9 +18,7 @@ func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{
 		data := map[string]interface{}{
 			"api_id":     RobotTTSCommandID,
 			"text":       text,
-			"voice_name": "Mandarin-CN.Male-1",
-			"speed":      1.0,
-			"volume":     1.0,
+			"voice_name": "English-US.Male-1",
 		}
 
 		dataBytes, err := json.Marshal(data)

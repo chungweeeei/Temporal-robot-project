@@ -40,7 +40,7 @@ func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceRe
 	}
 
 	// starting goroutine move to target point
-	go r.Move(moveArgs.X, moveArgs.Y)
+	go r.Move(moveArgs.MissionID, moveArgs.X, moveArgs.Y)
 
 	respData := BaseResponse{
 		ApiID: RobotMoveCommandID,
@@ -261,6 +261,14 @@ func (r *MockRobot) GetRobotStatus() pkg.TopicResponse {
 				Y: r.State.Y,
 				Z: 0.0,
 			},
+		},
+		MissionID: r.State.MissionID,
+		Mission: struct {
+			Code    MissionCode `json:"code"`
+			Message string      `json:"message"`
+		}{
+			Code:    r.State.Mission.Code,
+			Message: r.State.Mission.Message,
 		},
 		Timestamp: time.Now().Format("2006-01-02T15:04:05"),
 	}
