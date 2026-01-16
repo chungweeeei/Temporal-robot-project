@@ -135,3 +135,43 @@ export async function resumeWorkflow(workflowId: string){
 
     return response.data;
 }
+
+export async function createWorkflow(workflowName: string){
+
+    const response = await axios.post(
+        "http://localhost:3000/api/v1/workflows",
+        {
+            workflow_name: workflowName,
+            nodes: {}
+        },
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200 && response.status !== 201){
+        throw new Error(`Failed to create workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}
+
+export async function deleteWorkflow(workflowId: string){
+
+    const response = await axios.delete(
+        `http://localhost:3000/api/v1/workflows/${workflowId}`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200 && response.status !== 204){
+        throw new Error(`Failed to delete workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}

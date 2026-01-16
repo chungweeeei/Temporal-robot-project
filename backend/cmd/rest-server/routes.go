@@ -24,6 +24,7 @@ func (app *Config) routes() http.Handler {
 
 	apiV1 := e.Group("/api/v1")
 	{
+		// Workflows for manually trigger
 		apiV1.POST("/workflows", app.saveWorkflow)
 		apiV1.GET("/workflows", app.getWorkflows)
 		apiV1.GET("/workflows/:id", app.getWorkflowById)
@@ -31,6 +32,9 @@ func (app *Config) routes() http.Handler {
 		apiV1.POST("/workflows/:id/trigger", app.triggerWorkflow)
 		apiV1.POST("/workflows/:id/pause", app.pauseWorkflow)
 		apiV1.POST("/workflows/:id/resume", app.resumeWorkflow)
+
+		// Schedules for scheduled trigger
+		apiV1.POST("/schedules", app.createSchedule)
 	}
 
 	return e

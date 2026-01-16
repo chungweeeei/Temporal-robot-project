@@ -145,5 +145,5 @@ func RobotStatusBroadcaster(conn *SafeConn, done <-chan struct{}) {
 func main() {
 	http.HandleFunc("/", wsHandler)
 	log.Println("Mock Robot Server started on :9090")
-	http.ListenAndServe(":9090", nil)
+	http.ListenAndServe("localhost:9090", nil)
 }

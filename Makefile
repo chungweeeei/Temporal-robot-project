@@ -1,5 +1,2 @@
-include .env
-export 
-
-run-worker:
-	@go run backend/cmd/robot-workflow/worker/main.go
+run-routine-worker:
+	cd backend && go run cmd/robot-workflow/worker/main.go

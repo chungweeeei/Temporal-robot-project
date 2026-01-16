@@ -1,0 +1,8 @@
+POST http://localhost:3000/api/v1/schedules
+Content-Type: application/json
+
+{
+    "schedule_id": "task-check-schedule-001",
+    "cron_expr": "*/5 * * * *",
+    "timezone": "Asia/Taipei"
+}

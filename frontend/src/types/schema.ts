@@ -1,5 +1,7 @@
 export type ActivityType = 'Standup' | 'Sitdown' | 'Move' | 'Sleep' | 'Start' | 'End' | 'TTS' | 'Head';
 
+export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+
 export interface RetryPolicy {
   max_attempts: number;
   initial_interval: number; // ms
@@ -58,4 +60,21 @@ export interface WorkflowPayload {
   workflow_name?: string;
   root_node_id?: string;
   nodes: Record<string, WorkflowNode>;
+}
+
+// Dashboard 用的 Workflow 摘要
+export interface WorkflowSummary {
+  workflow_id: string;
+  workflow_name: string;
+  status?: WorkflowStatus;
+  current_step?: string;
+  updated_at?: string;
+}
+
+// 排程功能 (預留)
+export interface WorkflowSchedule {
+  enabled: boolean;
+  cron_expression?: string;  // e.g., "0 8 * * *" for daily 8 AM
+  next_run?: string;         // ISO timestamp
+  last_run?: string;         // ISO timestamp
 }

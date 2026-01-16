@@ -42,10 +42,11 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 
 	// Background listener for control signal
 	workflow.Go(ctx, func(ctx workflow.Context) {
+		workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
 		for {
 			var signal string
 			signalChan.Receive(ctx, &signal)
-			logger.Info("Received control signal", "signal", signal)
+			logger.Info("Received control signal", "workflowID", workflowID, "signal", signal)
 			switch signal {
 			case "pause":
 				pause = true
@@ -94,7 +95,8 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 			cancel()
 
 			if temporal.IsCanceledError(err) {
-				logger.Info("Activity was cancelled due to pause signal", "activity", string(currentNode.Type))
+				workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
+				logger.Info("Activity was cancelled due to pause signal", "workflowID", workflowID, "activityType", string(currentNode.Type))
 				currentStep = "Paused"
 				continue
 			}
@@ -139,14 +141,11 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 			}
 			currentNodeID = currentNode.Transitions.Next
 		case pkg.ActivityEnd:
-			cancel()
 			logger.Info("Workflow reached end node")
 			return "Workflow completed successfully", nil
 		case pkg.ActivityStart:
-			cancel()
 			currentNodeID = currentNode.Transitions.Next
 		default:
-			cancel()
 			return "", fmt.Errorf("unsupported activity type: %s", currentNode.Type)
 		}
 	}

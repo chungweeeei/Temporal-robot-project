@@ -11,7 +11,7 @@ import (
 // Handle Request
 func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceResponse {
 
-	r.InfoLog.Println("Receive Service Request:", request)
+	r.InfoLog.Printf("[%s] Receive Service Request: %s\n", time.Now(), request)
 
 	switch request.Service {
 	case "/api/system":
