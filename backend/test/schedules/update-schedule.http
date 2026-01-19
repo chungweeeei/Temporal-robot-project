@@ -1,0 +1,6 @@
+PUT http://localhost:3000/api/v1/schedules/task-check-schedule-001
+Content-Type: application/json
+
+{
+  "cron_expr": "*/5 * * * *"
+}

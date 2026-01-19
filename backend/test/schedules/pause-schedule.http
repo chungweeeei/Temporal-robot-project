@@ -1,0 +1,2 @@
+POST http://localhost:3000/api/v1/schedules/task-check-schedule-001/pause
+Content-Type: application/json

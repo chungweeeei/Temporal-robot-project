@@ -35,6 +35,13 @@ func (app *Config) routes() http.Handler {
 
 		// Schedules for scheduled trigger
 		apiV1.POST("/schedules", app.createSchedule)
+		apiV1.GET("/schedules", app.getSchedules)
+		apiV1.GET("/schedules/:id", app.getScheduleById)
+		apiV1.POST("/schedules/:id/trigger", app.triggerSchedule)
+		apiV1.POST("/schedules/:id/pause", app.pauseSchedule)
+		apiV1.POST("/schedules/:id/resume", app.resumeSchedule)
+		apiV1.DELETE("/schedules/:id", app.deleteSchedule)
+		apiV1.PUT("/schedules/:id", app.updateSchedule)
 	}
 
 	return e

@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/rest-server/data"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -235,70 +233,5 @@ func (app *Config) getWorkflowStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"workflow_id":  workflow_id,
 		"current_step": currentStep,
-	})
-}
-
-type CreateScheduleRequest struct {
-	ScheduleID string `json:"schedule_id" binding:"required"`
-	CronExpr   string `json:"cron_expr" binding:"required"` // e.g. "*/5 * * * *"
-	Timezone   string `json:"timezone"`                     // 預設 Asia/Taipei
-}
-
-func (app *Config) createSchedule(c *gin.Context) {
-
-	var req CreateScheduleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		app.ErrorLog.Println("Invalid payload:", err)
-		c.JSON(http.StatusBadRequest,
-			ErrorResponse{Message: fmt.Sprintf("Invalid payload: %v", err)})
-		return
-	}
-
-	// default timezone setting
-	timezone := req.Timezone
-	if timezone == "" {
-		timezone = "Asia/Taipei"
-	}
-
-	_, err := time.LoadLocation(timezone)
-	if err != nil {
-		app.ErrorLog.Println("Invalid timezone:", err)
-		c.JSON(http.StatusBadRequest,
-			ErrorResponse{Message: "Invalid timezone"})
-		return
-	}
-
-	// build up temporal schedule
-	scheduleClient := app.TemporalClient.ScheduleClient()
-
-	scheduleHandle, err := scheduleClient.Create(context.Background(), client.ScheduleOptions{
-		ID: req.ScheduleID,
-		Spec: client.ScheduleSpec{
-			CronExpressions: []string{req.CronExpr},
-			Jitter:          time.Second * 10, // 加入一點 jitter 避免同時觸發
-			TimeZoneName:    timezone,
-		},
-		Action: &client.ScheduleWorkflowAction{
-			ID:        fmt.Sprintf("%s-workflow", req.ScheduleID),
-			Workflow:  workflows.RobotScheduleWorkflow,
-			TaskQueue: "ROBOT_SCHEDULE_QUEUE",
-		},
-		Overlap: enums.SCHEDULE_OVERLAP_POLICY_SKIP, // 如果上一個還在跑，跳過這次
-	})
-
-	if err != nil {
-		app.ErrorLog.Println("Unable to create schedule:", err)
-		c.JSON(http.StatusInternalServerError,
-			ErrorResponse{Message: "Unable to create schedule"})
-		return
-	}
-
-	app.InfoLog.Printf("Schedule created: %s", scheduleHandle.GetID())
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "Schedule created successfully",
-		"schedule_id": scheduleHandle.GetID(),
-		"cron_expr":   req.CronExpr,
-		"timezone":    timezone,
 	})
 }
