@@ -11,6 +11,7 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -101,7 +102,7 @@ func (h *Handler) TriggerWorkflow(c *gin.Context) {
 
 	h.App.InfoLog.Println("Received workflow trigger request:", req)
 
-	// TODO: thinking about the request schema different between received from client and interanl useage
+	// TODO: thinking about the request schema different between received from client and internal usage
 	// 3. setting workflow options
 	nodesBytes, _ := json.Marshal(req.Nodes)
 
@@ -211,23 +212,47 @@ func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 		return
 	}
 
-	// In a real implementation, you would query Temporal for the workflow status.
-	resp, err := h.App.TemporalClient.QueryWorkflow(context.Background(), workflowId, "", "get_step")
+	// 1. First, get the system-level status from Temporal
+	descResp, err := h.App.TemporalClient.DescribeWorkflowExecution(context.Background(), workflowId, "")
 	if err != nil {
-		h.App.ErrorLog.Println("Unable to query workflow:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to query workflow"})
+		h.App.ErrorLog.Println("Unable to describe workflow:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get workflow status"})
 		return
 	}
 
+	systemStatus := descResp.WorkflowExecutionInfo.Status
+
+	var status string = ""
 	var currentStep string
-	if err := resp.Get(&currentStep); err != nil {
-		h.App.ErrorLog.Println("Unable to get query result:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get query result"})
-		return
+	// 2. Map system status to our API status
+	switch systemStatus {
+	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
+		status = "Running"
+
+		// Only query for step if the workflow is actually running
+		queryResp, err := h.App.TemporalClient.QueryWorkflow(context.Background(), workflowId, "", "get_step")
+		if err == nil {
+			if err := queryResp.Get(&currentStep); err == nil {
+				// If the internal logic says "Paused", we can override the status or just pass it as step
+				if currentStep == "Paused" {
+					status = "Paused"
+				}
+			}
+		}
+	case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+		status = "Completed"
+	case enums.WORKFLOW_EXECUTION_STATUS_FAILED:
+		status = "Failed"
+	case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
+		status = "Canceled"
+	case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+		status = "Terminated"
+	default:
+		status = "Unknown"
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"workflow_id":  workflowId,
+		"status":       status,
 		"current_step": currentStep,
 	})
 }

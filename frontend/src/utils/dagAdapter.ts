@@ -1,20 +1,18 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { WorkflowPayload, WorkflowNode, FlowNodeData } from '../types/schema';
+import type { NodeInfo } from '../types/workflows';
 
 export const transformToDagPayload = (
-  workflowId: string,
-  workflowName: string,
   nodes: Node[],
   edges: Edge[]
-): WorkflowPayload => {
-  const payloadNodes: Record<string, WorkflowNode> = {};
+): Record<string, NodeInfo> => {
+  const payloadNodes: Record<string, NodeInfo> = {};
 
   // 1. 初始化所有節點
   nodes.forEach((node) => {
     payloadNodes[node.id] = {
       id: node.id,
-      type: (node.data as FlowNodeData).activityType,
-      params: (node.data as FlowNodeData).params,
+      type: node.data.activityType,
+      params: node.data.params,
       transitions: {},
     };
   });
@@ -39,17 +37,12 @@ export const transformToDagPayload = (
     }
   });
   
-  return {
-    workflow_id: workflowId,
-    workflow_name: workflowName,
-    root_node_id: "start",
-    nodes: payloadNodes,
-  };
+  return payloadNodes;
 };
 
 
 export const transformBackToReactFlow = (
-  backendNodes: Record<string, WorkflowNode>
+  backendNodes: Record<string, NodeInfo>
 ): { nodes: Node[]; edges: Edge[] } => {
 
   const nodes: Node[] = [];

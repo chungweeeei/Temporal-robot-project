@@ -48,10 +48,9 @@ Content-Type: application/json
     },
     "1768283616080": {
       "id": "1768283616080",
-      "type": "Move",
+      "type": "Sleep",
       "params": {
-        "x": 18.25,
-        "y": 24.99
+        "duration": 10000
       },
       "transitions": {
         "next": "end"

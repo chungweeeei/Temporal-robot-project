@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateSchedule } from "@/hooks/useCreateSchedule";
-import { useFetchWorkflow } from "@/hooks/useFetchWorkflow";
+import { useFetchWorkflow } from "@/hooks/useFetchWorkflows";
 import { Plus } from "lucide-react";
 
 export function CreateScheduleModal() {

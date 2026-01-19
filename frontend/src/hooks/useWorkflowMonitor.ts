@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useFetchWorkflowStatus } from './useFetchWorkflowStatus';
-import { type WorkflowStatus } from '../types/schema';
+import { type WorkflowStatusDef } from '../types/workflows';
 import { useWorkflowStore } from '../store/useWorkflowStore';
 
 export function useWorkflowMonitor(workflowId: string) {
@@ -11,15 +11,9 @@ export function useWorkflowMonitor(workflowId: string) {
 
     const { data: statusData } = useFetchWorkflowStatus(workflowId || '', isMonitoring);
 
-    const workflowStatus: WorkflowStatus = useMemo(() => {
-        if (!statusData) return isMonitoring ? 'running' : 'idle';
-    
-        const step = statusData.current_step;
-        if (step === 'End') return 'completed';
-        if (step === 'Failed') return 'failed';
-        if (step === 'Paused') return 'paused';
-    
-        return isMonitoring ? 'running' : 'idle';
+    const workflowStatus: WorkflowStatusDef = useMemo(() => {
+        if (!statusData) return isMonitoring ? 'Running' : 'Idle';
+        return statusData.status;
     }, [statusData, isMonitoring]);
 
     const currentStep = statusData?.current_step || null;
@@ -29,7 +23,7 @@ export function useWorkflowMonitor(workflowId: string) {
       // Only affect global state if WE are the active workflow
       if (!isMonitoring) return;
 
-      if (workflowStatus === 'completed' || workflowStatus === 'failed') {
+      if (workflowStatus === 'Completed' || workflowStatus === 'Failed') {
         const timer = setTimeout(() => {
             // Check again if we are still the active one before clearing
             if (useWorkflowStore.getState().activeWorkflowId === workflowId) {

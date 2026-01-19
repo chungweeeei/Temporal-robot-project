@@ -1,5 +1,26 @@
+import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { fetchWorkflowStatus } from "../utils/http";
+import type { WorkflowStatus } from "@/types/workflows";
+
+
+export async function fetchWorkflowStatus(workflowId: string): Promise<WorkflowStatus> {
+
+    const response = await axios.get<WorkflowStatus>(
+        `http://localhost:3000/api/v1/workflows/${workflowId}/status`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    )
+
+    if (response.status !== 200){
+        throw new Error(`Failed to fetch workflow status: ${response.statusText}`);
+    }
+    
+    return response.data;
+}
+
 
 export const useFetchWorkflowStatus = (workflowId: string, isRunning: boolean) => {
     return useQuery({

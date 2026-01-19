@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
-interface WorkflowState {
+interface WorkflowStore {
     activeWorkflowId: string | null;
     setActiveWorkflowId: (id: string | null) => void;
 }
 
-export const useWorkflowStore = create<WorkflowState>((set) => ({
+export const useWorkflowStore = create<WorkflowStore>((set) => ({
     activeWorkflowId: null,
     setActiveWorkflowId: (id: string | null) => set({ activeWorkflowId: id }),
 }));

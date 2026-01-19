@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type OnNodesChange, type OnEdgesChange, type OnNodesDelete, applyNodeChanges, applyEdgeChanges, type NodeMouseHandler, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { BaseParams, MoveParams, SleepParams } from '@/types/schema';
+import type { BaseParams, MoveParams, SleepParams } from '@/types/workflows';
 import ConditionNode from '@/components/nodes/ConditionNode';
 import ActionNode from '@/components/nodes/ActionNode';
 import StartNode from '@/components/nodes/StartNode';
@@ -13,10 +13,9 @@ import NodeEditorModal from '@/components/NodeEditorModal';
 import { WorkflowStatusBadge } from '@/components/shared/WorkflowStatusBadge';
 import { transformBackToReactFlow, transformToDagPayload } from '@/utils/dagAdapter';
 import { useSaveWorkflow } from '@/hooks/useSaveWorkflow';
-import { useTriggerWorkflow } from '@/hooks/useTriggerWorkflow';
 import { useFetchWorkflowById } from '@/hooks/useFetchWorkflowById';
 import { useWorkflowMonitor } from '@/hooks/useWorkflowMonitor';
-import { usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
+import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowLeft, Save, Play, Pause, Plus, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Plus, ChevronDown, Pause, Play } from 'lucide-react';
 
 // --- Register Custom Nodes ---
 const nodeTypes = {
@@ -44,46 +43,42 @@ const activityOptions = [
   { type: 'Head', label: 'Head' }
 ];
 
+const defaultNodes = [{
+  id: 'start',
+  type: 'start',
+  position: { x: 0, y: 0 },
+  data: { label: 'Start' },
+},{
+  id: 'end',
+  type: 'end',
+  position: { x: 1000, y: 0 },
+  data: { label: 'End' },
+}];
+
 export default function Editor() {
   const { workflowId } = useParams<{ workflowId: string }>();
 
   // state passed by useLocation in react-router
   const location = useLocation();
   const state = location.state as { operation?: string; workflowName?: string };
-  const isCreateMode = state?.operation === 'create';
+  // const isCreateMode = state?.operation === 'create';
+  // const isCreateMode = false;
   
+  // Fetch workflow detail from backend
+  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: true});
+  const workflowName = workflowDetail?.workflow_name || "Untitled Workflow";
+
   // React Router navigation
   const navigate = useNavigate();
   
   // --- React Flow State ---
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<Node[]>(defaultNodes);
   const [edges, setEdges] = useState<Edge[]>([]);
-
-  // Fetch workflow detail from backend
-  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: !isCreateMode});
-  const workflowName = workflowDetail?.workflow_name || state.workflowName;
 
   // Effect: When workflow detail is loaded, update the canvas
   useEffect(() => {
-    if (!workflowDetail || !workflowDetail.nodes){
-      // set default start and end nodes for new workflow
-      setNodes([
-        {
-          id: 'start',
-          type: 'start',
-          position: { x: 0, y: 0 },
-          data: { label: 'Start' },
-        },
-        {
-          id: 'end',
-          type: 'end',
-          position: { x: 1000, y: 0 },
-          data: { label: 'End' },
-        }
-      ]);
-      setEdges([]);
-      return;
-    }
+    if (!workflowDetail || !workflowDetail.nodes) return;
+
     const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(workflowDetail.nodes);
     setNodes(newNodes);
     setEdges(newEdges);
@@ -134,10 +129,14 @@ export default function Editor() {
   const saveMutation = useSaveWorkflow();
   const handleSaveWorkflow = () => {
     if (!workflowId) return;
-    const payload = transformToDagPayload(workflowId, workflowName, nodes, edges);
-    saveMutation.mutate(payload, {
+    const payload = transformToDagPayload(nodes, edges);
+    saveMutation.mutate({
+      workflow_id: workflowId,
+      workflow_name: workflowName,
+      nodes: payload,
+    }, {
       onSuccess: () => {
-        alert('Workflow saved successfully!');
+        console.log("Workflow saved successfully.");
       },
       onError: (error) => {
         alert(`Failed to save: ${error.message}`);
@@ -151,14 +150,18 @@ export default function Editor() {
   const triggerMutation = useTriggerWorkflow();
   const handleTriggerWorkflow = () => {
     if (!workflowId) return;
-    const payload = transformToDagPayload(workflowId, workflowName, nodes, edges);
-    triggerMutation.mutate(payload, {
+    const payload = transformToDagPayload(nodes, edges);
+    triggerMutation.mutate({
+      workflow_id: workflowId,
+      workflow_name: workflowName,
+      nodes: payload,
+    }, {
       onSuccess: () => {
-        alert('Workflow triggered successfully!');
+        console.log("Workflow triggered successfully.");
         setIsMonitoring(true);
       },
       onError: (error) => {
-        alert(`Failed to trigger: ${error.message}`);
+        console.log(`Failed to trigger: ${error.message}`);
         setIsMonitoring(false);
       }
     });
@@ -191,7 +194,7 @@ export default function Editor() {
   };
 
   // --- 新增節點功能 ---
-  const handleAddNode = (type: string) => {
+  const handleAddNode = useCallback((type: string) => {
     const id = Date.now().toString();
     const isCondition = type === 'Condition';
     
@@ -213,7 +216,7 @@ export default function Editor() {
       type: isCondition ? 'condition' : 'action',
     };
     setNodes((nds) => [...nds, newNode]);
-  };
+  }, []);
 
   // --- 刪除節點功能 ---
   const handleDeleteNode = () => {
@@ -232,8 +235,8 @@ export default function Editor() {
     );
   }
 
-  const isRunning = workflowStatus === 'running';
-  const isPaused = workflowStatus === 'paused';
+  const isRunning = workflowStatus === 'Running';
+  const isPaused = workflowStatus === 'Paused';
 
   return (
     <div className="w-screen h-screen flex flex-col">
@@ -250,7 +253,7 @@ export default function Editor() {
             <div className="h-6 w-px bg-border" />
             <div>
               <h1 className="font-semibold">{workflowName}</h1>
-              <WorkflowStatusBadge status={workflowStatus} currentStep={currentStep} />
+              <WorkflowStatusBadge status={workflowStatus} currentStep={currentStep || ""} />
             </div>
           </div>
 
@@ -262,7 +265,7 @@ export default function Editor() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleAddNode(option.type)}
-                disabled={isRunning}
+                disabled={false}
               >
                 <Plus className="h-3 w-3 mr-1" />
                 {option.label}
@@ -276,10 +279,9 @@ export default function Editor() {
               variant="outline"
               size="sm"
               onClick={handleSaveWorkflow}
-              disabled={saveMutation.isPending || isRunning}
             >
               <Save className="h-4 w-4 mr-2" />
-              {saveMutation.isPending ? 'Saving...' : 'Save'}
+              Save
             </Button>
 
             {isRunning || isPaused ? (
@@ -318,7 +320,7 @@ export default function Editor() {
               <div className="h-6 w-px bg-border shrink-0" />
               <div className="min-w-0">
                 <h1 className="font-semibold truncate">{workflowName}</h1>
-                <WorkflowStatusBadge status={workflowStatus} currentStep={currentStep} />
+                {/* <WorkflowStatusBadge status={workflowStatus} currentStep={"Move"} /> */}
               </div>
             </div>
 
@@ -327,14 +329,12 @@ export default function Editor() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleSaveWorkflow}
-                disabled={saveMutation.isPending || isRunning}
               >
                 <Save className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{saveMutation.isPending ? 'Saving...' : 'Save'}</span>
+                <span className="hidden sm:inline">Save</span>
               </Button>
 
-              {isRunning || isPaused ? (
+              {/* {isRunning || isPaused ? (
                 <Button
                   variant={isPaused ? 'default' : 'secondary'}
                   size="sm"
@@ -353,7 +353,7 @@ export default function Editor() {
                   <Play className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{triggerMutation.isPending ? 'Starting...' : 'Run'}</span>
                 </Button>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -363,7 +363,7 @@ export default function Editor() {
             <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" disabled={isRunning}>
+                  <Button variant="outline" size="sm" disabled={false}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Node
                     <ChevronDown className="h-4 w-4 ml-2" />
@@ -391,7 +391,7 @@ export default function Editor() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleAddNode(option.type)}
-                  disabled={isRunning}
+                  disabled={false}
                   className="shrink-0"
                 >
                   <Plus className="h-3 w-3 mr-1" />

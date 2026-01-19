@@ -1,5 +1,27 @@
+import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createWorkflow } from "@/utils/http";
+
+export async function createWorkflow(workflowName: string){
+
+    const response = await axios.post(
+        "http://localhost:3000/api/v1/workflows",
+        {
+            workflow_name: workflowName,
+            nodes: {}
+        },
+        {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+
+    if (response.status !== 200 && response.status !== 201){
+        throw new Error(`Failed to create workflow: ${response.statusText}`);
+    }
+
+    return response.data;
+}
 
 export const useCreateWorkflow = () => {
     const queryClient = useQueryClient();

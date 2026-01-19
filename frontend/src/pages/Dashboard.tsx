@@ -1,6 +1,6 @@
 import { WorkflowList } from "@/components/dashboard/WorkflowList";
 import { CreateWorkflowModal } from "@/components/dashboard/CreateWorkflowModal";
-import { ScheduleSection } from "@/components/dashboard/ScheduleSection";
+// import { ScheduleSection } from "@/components/dashboard/ScheduleSection";
 import { Bot } from "lucide-react";
 
 export default function Dashboard() {
@@ -26,16 +26,12 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Workflows Section */}
         <section>
           <h2 className="text-lg font-semibold mb-4">My Workflows</h2>
           <WorkflowList />
         </section>
-
-        {/* Schedule Section (Future Feature Placeholder) */}
-        <ScheduleSection />
+        {/* <ScheduleSection /> */}
       </main>
     </div>
   );
