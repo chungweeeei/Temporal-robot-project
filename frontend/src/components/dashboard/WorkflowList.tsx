@@ -5,17 +5,18 @@ import { useFetchWorkflowStatus } from "@/hooks/useFetchWorkflowStatus";
 import { useTriggerWorkflow } from "@/hooks/useTriggerWorkflow";
 import { usePauseWorkflow, useResumeWorkflow } from "@/hooks/useControlWorkflow";
 import { useDeleteWorkflow } from "@/hooks/useDeleteWorkflow";
+import { useWorkflowStore } from "@/store/useWorkflowStore";
 import type { WorkflowPayload, WorkflowStatus } from "@/types/schema";
 import { Workflow } from "lucide-react";
 
 export function WorkflowList() {
   const { data: workflows = [], isLoading } = useFetchWorkflow();
-  const [runningWorkflowId, setRunningWorkflowId] = useState<string | null>(null);
+  const { activeWorkflowId, setActiveWorkflowId } = useWorkflowStore();
   
   // 只對 running 的 workflow 進行輪詢
   const { data: statusData } = useFetchWorkflowStatus(
-    runningWorkflowId || "", 
-    !!runningWorkflowId
+    activeWorkflowId || "", 
+    !!activeWorkflowId
   );
 
   const triggerWorkflow = useTriggerWorkflow();
@@ -28,7 +29,7 @@ export function WorkflowList() {
 
   // 當 statusData 更新時，更新對應 workflow 的狀態
   useEffect(() => {
-    if (!statusData || !runningWorkflowId) return;
+    if (!statusData || !activeWorkflowId) return;
 
     const currentStep = statusData.current_step;
     let newStatus: WorkflowStatus = "running";
@@ -36,22 +37,22 @@ export function WorkflowList() {
     if (currentStep === "End") {
       newStatus = "completed";
       // 完成後停止輪詢
-      setTimeout(() => setRunningWorkflowId(null), 2000);
+      setTimeout(() => setActiveWorkflowId(null), 2000);
     } else if (currentStep === "Failed") {
       newStatus = "failed";
-      setTimeout(() => setRunningWorkflowId(null), 2000);
+      setTimeout(() => setActiveWorkflowId(null), 2000);
     } else if (currentStep === "Paused") {
       newStatus = "paused";
     }
 
     setWorkflowStatuses((prev) => ({
       ...prev,
-      [runningWorkflowId]: {
+      [activeWorkflowId]: {
         status: newStatus,
         currentStep: newStatus === "running" ? currentStep : undefined,
       },
     }));
-  }, [statusData, runningWorkflowId]);
+  }, [statusData, activeWorkflowId]);
 
   const handleTrigger = (workflowId: string) => {
     const workflow = workflows.find((w: WorkflowPayload) => w.workflow_id === workflowId);
@@ -59,7 +60,7 @@ export function WorkflowList() {
 
     triggerWorkflow.mutate(workflow, {
       onSuccess: () => {
-        setRunningWorkflowId(workflowId);
+        setActiveWorkflowId(workflowId);
         setWorkflowStatuses((prev) => ({
           ...prev,
           [workflowId]: { status: "running" },
@@ -78,7 +79,7 @@ export function WorkflowList() {
       // Resume
       resumeWorkflow.mutate(workflowId, {
         onSuccess: () => {
-          setRunningWorkflowId(workflowId);
+          setActiveWorkflowId(workflowId);
           setWorkflowStatuses((prev) => ({
             ...prev,
             [workflowId]: { status: "running" },
