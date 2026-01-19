@@ -1,4 +1,4 @@
-package robot
+package simulator
 
 type ErrorCode int
 
@@ -16,15 +16,27 @@ const (
 type ActionID int
 
 const (
-	RobotStatusID        = 1009
 	RobotMoveCommandID   = 1005
+	RobotStatusID        = 1009
 	RobotMotionControlID = 1013
 	RobotTTSCommandID    = 1014
+
 	// TODO: define stop action ID temporally for testing pause/resume feature
 	RobotStopActionID = 5000
 )
 
 const (
-	StandUpActionID = 3
-	SitDownActionID = 4
+	StandUp   = 3
+	StandDown = 4
+	SitDown   = 6
+)
+
+type MissionCode int
+
+const (
+	MissionCodeInit MissionCode = iota
+	MissionCodeStart
+	MissionSuccess
+	MissionFailed
+	MissionAbort
 )

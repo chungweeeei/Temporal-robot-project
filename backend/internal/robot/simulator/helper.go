@@ -1,4 +1,4 @@
-package robot
+package simulator
 
 import "math"
 

@@ -1,19 +1,9 @@
-package robot
+package simulator
 
 import (
 	"log"
 	"os"
 	"sync"
-)
-
-type MissionCode int
-
-const (
-	MissionCodeInit MissionCode = iota
-	MissionCodeStart
-	MissionSuccess
-	MissionFailed
-	MissionAbort
 )
 
 type RobotState struct {
@@ -37,8 +27,8 @@ type MockRobot struct {
 	StopChan chan bool
 }
 
-func New() *MockRobot {
-	r := &MockRobot{
+func NewMockRobot() *MockRobot {
+	mockRobot := &MockRobot{
 		Mu: sync.Mutex{},
 		State: RobotState{
 			BatteryLevel: 30,
@@ -58,5 +48,5 @@ func New() *MockRobot {
 		ErrorLog: log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile),
 		StopChan: make(chan bool),
 	}
-	return r
+	return mockRobot
 }

@@ -3,6 +3,8 @@ Content-Type: application/json
 
 {
     "schedule_id": "task-check-schedule-001",
+    "workflow_id": "RobotWorkflow",
     "cron_expr": "*/5 * * * *",
     "timezone": "Asia/Taipei"
 }
+    

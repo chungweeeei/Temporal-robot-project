@@ -2,47 +2,41 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/chungweeeei/Temporal-robot-project/cmd/rest-server/data"
+	"github.com/chungweeeei/Temporal-robot-project/internal/api"
+	"github.com/chungweeeei/Temporal-robot-project/internal/config"
+	"github.com/chungweeeei/Temporal-robot-project/internal/database"
 	"go.temporal.io/sdk/client"
 )
 
 func main() {
 
-	db := initDB()
-
-	infoLog := log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
-
+	db := database.InitDB()
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: "localhost:7233",
 	})
 	if err != nil {
-		errorLog.Fatalf("Unable to create Temporal client: %v", err)
+		log.Fatalf("Unable to create Temporal client: %v", err)
 	}
 
-	app := Config{
-		DB:             db,
-		Model:          data.New(db),
-		InfoLog:        infoLog,
-		ErrorLog:       errorLog,
-		ErrorChan:      make(chan error),
-		ErrorDoneChan:  make(chan bool),
-		TemporalClient: temporalClient,
+	app := config.NewAppConfig(db, temporalClient)
+
+	go listenForErrors(app)
+
+	go listenForShutdown(app)
+
+	router := api.NewRouter(app)
+
+	app.InfoLog.Println("Starting REST server on :3000")
+	if err := router.Run("localhost:3000"); err != nil {
+		log.Panic(err)
 	}
-
-	go app.listenForErrors()
-
-	go app.listenForShutdown()
-
-	app.serve()
 }
 
-func (app *Config) listenForErrors() {
+func listenForErrors(app *config.AppConfig) {
 
 	for {
 		select {
@@ -54,39 +48,11 @@ func (app *Config) listenForErrors() {
 	}
 }
 
-func (app *Config) listenForShutdown() {
+func listenForShutdown(app *config.AppConfig) {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	app.shutdown()
+	app.Shutdown()
 	os.Exit(0)
-}
-
-func (app *Config) shutdown() {
-
-	// perform any cleanup tasks
-	app.InfoLog.Println("Would run cleanup tasks...")
-
-	// notify "listenForErrors" channel to close
-	app.ErrorDoneChan <- true
-
-	// shutdown
-	app.InfoLog.Println("closing channels and shutting down application...")
-	close(app.ErrorChan)
-	close(app.ErrorDoneChan)
-}
-
-func (app *Config) serve() {
-
-	srv := &http.Server{
-		Addr:    "localhost:3000",
-		Handler: app.routes(),
-	}
-
-	app.InfoLog.Println("Starting Shorten URL service")
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Panic(err)
-	}
 }

@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func initDB() *gorm.DB {
+func InitDB() *gorm.DB {
 
 	ensureDatabaseExists()
 

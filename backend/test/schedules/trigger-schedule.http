@@ -1,2 +1,0 @@
-POST http://localhost:3000/api/v1/schedules/task-check-schedule-001/trigger
-Content-Type: application/json

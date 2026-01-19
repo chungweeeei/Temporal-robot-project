@@ -1,4 +1,4 @@
-package data
+package models
 
 type WorkflowInterface interface {
 	Upsert(workflow Workflow) (string, error)

@@ -1,4 +1,4 @@
-package robot
+package simulator
 
 type BaseRequestArgs struct {
 	ApiID int `json:"api_id"`
