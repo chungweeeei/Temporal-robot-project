@@ -14,7 +14,10 @@ import (
 
 func main() {
 
+	// Initialize database connection
 	db := database.InitDB()
+
+	// Initialize Temporal client
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: "localhost:7233",
 	})
@@ -22,6 +25,7 @@ func main() {
 		log.Fatalf("Unable to create Temporal client: %v", err)
 	}
 
+	// Register restful server
 	app := config.NewAppConfig(db, temporalClient)
 
 	go listenForErrors(app)

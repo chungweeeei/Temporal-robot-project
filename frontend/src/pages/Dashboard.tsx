@@ -17,7 +17,7 @@ export default function Dashboard() {
               <div>
                 <h1 className="text-xl font-bold">Workflow Dashboard</h1>
                 <p className="text-sm text-muted-foreground">
-                  管理並監控你的機器人工作流程
+                  Manage and monitor your workflows
                 </p>
               </div>
             </div>

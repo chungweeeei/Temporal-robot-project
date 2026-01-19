@@ -27,11 +27,11 @@ export function WorkflowCard({
   const navigate = useNavigate();
 
   const handleEdit = () => {
-    navigate(`/editor/${workflowId}`);
+    navigate(`/editor/${workflowId}`, { state: { operation: "edit" } });
   };
 
   const handleDelete = () => {
-    if (window.confirm(`確定要刪除 "${workflowName}" 嗎？此操作無法復原。`)) {
+    if (window.confirm(`Are you sure you want to delete the workflow "${workflowName}"? This action cannot be undone.`)) {
       onDelete(workflowId);
     }
   };

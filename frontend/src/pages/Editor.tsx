@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type OnNodesChange, type OnEdgesChange, type OnNodesDelete, applyNodeChanges, applyEdgeChanges, type NodeMouseHandler, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { BaseParams, MoveParams, SleepParams, WorkflowStatus } from '@/types/schema';
+import type { BaseParams, MoveParams, SleepParams } from '@/types/schema';
 import ConditionNode from '@/components/nodes/ConditionNode';
 import ActionNode from '@/components/nodes/ActionNode';
 import StartNode from '@/components/nodes/StartNode';
@@ -14,7 +15,7 @@ import { transformBackToReactFlow, transformToDagPayload } from '@/utils/dagAdap
 import { useSaveWorkflow } from '@/hooks/useSaveWorkflow';
 import { useTriggerWorkflow } from '@/hooks/useTriggerWorkflow';
 import { useFetchWorkflowById } from '@/hooks/useFetchWorkflowById';
-import { useFetchWorkflowStatus } from '@/hooks/useFetchWorkflowStatus';
+import { useWorkflowMonitor } from '@/hooks/useWorkflowMonitor';
 import { usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ArrowLeft, Save, Play, Pause, Plus, ChevronDown } from 'lucide-react';
 
-// --- 註冊 Custom Nodes ---
+// --- Register Custom Nodes ---
 const nodeTypes = {
   condition: ConditionNode,
   action: ActionNode,
@@ -33,49 +34,69 @@ const nodeTypes = {
   end: EndNode,
 };
 
-// Activity 類型選項
+// Activity type options
 const activityOptions = [
   { type: 'Move', label: 'Move' },
   { type: 'Sleep', label: 'Sleep' },
   { type: 'Standup', label: 'Standup' },
   { type: 'Sitdown', label: 'Sitdown' },
   { type: 'TTS', label: 'TTS' },
-  { type: 'Head', label: 'Head' },
-  { type: 'Condition', label: 'Condition' },
+  { type: 'Head', label: 'Head' }
 ];
 
 export default function Editor() {
   const { workflowId } = useParams<{ workflowId: string }>();
+
+  // state passed by useLocation in react-router
+  const location = useLocation();
+  const state = location.state as { operation?: string; workflowName?: string };
+  const isCreateMode = state?.operation === 'create';
+  
+  // React Router navigation
   const navigate = useNavigate();
   
+  // --- React Flow State ---
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
-  // Fetch workflow detail
-  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '');
-  const workflowName = workflowDetail?.workflow_name || 'Untitled Workflow';
+  // Fetch workflow detail from backend
+  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: !isCreateMode});
+  const workflowName = workflowDetail?.workflow_name || state.workflowName;
 
-  // Effect: 當詳細資料載入時，更新畫布
+  // Effect: When workflow detail is loaded, update the canvas
   useEffect(() => {
-    if (workflowDetail && workflowDetail.nodes) {
-      const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(workflowDetail.nodes);
-      setNodes(newNodes);
-      setEdges(newEdges);
-    } else if (workflowDetail && !workflowDetail.nodes) {
-      setNodes([]);
+    if (!workflowDetail || !workflowDetail.nodes){
+      // set default start and end nodes for new workflow
+      setNodes([
+        {
+          id: 'start',
+          type: 'start',
+          position: { x: 0, y: 0 },
+          data: { label: 'Start' },
+        },
+        {
+          id: 'end',
+          type: 'end',
+          position: { x: 1000, y: 0 },
+          data: { label: 'End' },
+        }
+      ]);
       setEdges([]);
+      return;
     }
+    const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(workflowDetail.nodes);
+    setNodes(newNodes);
+    setEdges(newEdges);
   }, [workflowDetail]);
 
-  // --- Modal 狀態 ---
+  // --- React Flow Node Modal state ---
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // React Flow 回呼函式
+  // React Flow callback function
   const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
   const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), []);
-
   const onNodesDelete: OnNodesDelete = useCallback((deleted) => {
     setEdges((eds) => {
       const deletedIds = new Set(deleted.map((node) => node.id));
@@ -83,14 +104,14 @@ export default function Editor() {
     });
   }, []);
 
-  // --- 核心：雙擊節點開啟編輯 ---
+  // --- Core: Double-click node to open editor ---
   const onNodeDoubleClick: NodeMouseHandler = useCallback((_event, node) => {
     if (node.id === 'start' || node.id === 'end') return;
     setEditingNode(node);
     setModalOpen(true);
   }, []);
 
-  // --- 儲存 Modal 的變更 ---
+  // --- Save changes from Modal ---
   const handleSaveNodeParams = (newParams: BaseParams | MoveParams | SleepParams) => {
     if (!editingNode) return;
     
@@ -125,29 +146,7 @@ export default function Editor() {
   };
 
   // --- Workflow 執行狀態監控 ---
-  const [isMonitoring, setIsMonitoring] = useState(false);
-  const { data: statusData } = useFetchWorkflowStatus(workflowId || '', isMonitoring);
-  
-  const workflowStatus: WorkflowStatus = useMemo(() => {
-    if (!statusData) return isMonitoring ? 'running' : 'idle';
-    
-    const step = statusData.current_step;
-    if (step === 'End') return 'completed';
-    if (step === 'Failed') return 'failed';
-    if (step === 'Paused') return 'paused';
-    
-    return isMonitoring ? 'running' : 'idle';
-  }, [statusData, isMonitoring]);
-
-  const currentStep = statusData?.current_step;
-
-  // Effect: Auto-stop monitoring
-  useEffect(() => {
-    if (workflowStatus === 'completed' || workflowStatus === 'failed') {
-      const timer = setTimeout(() => setIsMonitoring(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [workflowStatus]);
+  const { setIsMonitoring, workflowStatus, currentStep } = useWorkflowMonitor(workflowId!);
 
   const triggerMutation = useTriggerWorkflow();
   const handleTriggerWorkflow = () => {

@@ -205,14 +205,14 @@ func (h *Handler) GetWorkflowById(c *gin.Context) {
 
 func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 
-	workflow_id := c.Param("id")
-	if workflow_id == "" {
+	workflowId := c.Param("id")
+	if workflowId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Workflow Id is required"})
 		return
 	}
 
 	// In a real implementation, you would query Temporal for the workflow status.
-	resp, err := h.App.TemporalClient.QueryWorkflow(context.Background(), workflow_id, "", "get_step")
+	resp, err := h.App.TemporalClient.QueryWorkflow(context.Background(), workflowId, "", "get_step")
 	if err != nil {
 		h.App.ErrorLog.Println("Unable to query workflow:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to query workflow"})
@@ -227,7 +227,28 @@ func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"workflow_id":  workflow_id,
+		"workflow_id":  workflowId,
 		"current_step": currentStep,
+	})
+}
+
+func (h *Handler) DeleteWorkflow(c *gin.Context) {
+
+	workflowId := c.Param("id")
+	if workflowId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Workflow Id is required"})
+		return
+	}
+
+	err := h.App.Model.Workflow.Delete(workflowId)
+	if err != nil {
+		h.App.ErrorLog.Println("Unable to delete workflow:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to delete workflow"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Workflow deleted successfully",
+		"workflow_id": workflowId,
 	})
 }

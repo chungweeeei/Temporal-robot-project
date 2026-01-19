@@ -58,3 +58,12 @@ func (dao *WorkflowDAO) GetByID(id string) (*models.Workflow, error) {
 
 	return &workflow, nil
 }
+
+func (dao *WorkflowDAO) Delete(workflowId string) error {
+
+	result := dao.DB.Where("workflow_id = ?", workflowId).Delete(&models.Workflow{})
+	if result.Error != nil {
+		return errors.New("failed to delete workflow")
+	}
+	return nil
+}
