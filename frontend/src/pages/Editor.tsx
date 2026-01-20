@@ -14,9 +14,11 @@ import { transformBackToReactFlow, transformToDagPayload } from '@/utils/dagAdap
 import { useSaveWorkflow } from '@/hooks/useSaveWorkflow';
 import { useFetchWorkflowById } from '@/hooks/useFetchWorkflows';
 import { useWorkflowMonitor } from '@/hooks/useWorkflowMonitor';
+import { useFetchActivitiesDef } from '@/hooks/useFetchActivitiesDef';
 import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Plus, Pause, Play } from 'lucide-react';
+import type { ActivityDefinition } from '@/types/activities';
 
 // --- Register Custom Nodes ---
 const nodeTypes = {
@@ -24,16 +26,6 @@ const nodeTypes = {
   start: StartNode,
   end: EndNode,
 };
-
-// Activity type options
-const activityOptions = [
-  { type: 'Move', label: 'Move' },
-  { type: 'Sleep', label: 'Sleep' },
-  { type: 'Standup', label: 'Standup' },
-  { type: 'Sitdown', label: 'Sitdown' },
-  { type: 'TTS', label: 'TTS' },
-  { type: 'Head', label: 'Head' }
-];
 
 const defaultNodes = [{
   id: 'start',
@@ -58,6 +50,9 @@ export default function Editor() {
   // Fetch workflow detail from backend
   const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: !isCreateMode});
   const workflowName = workflowDetail?.workflow_name || state.workflowName;
+
+  // Fetch activity definitions
+  const { data: activitiesDef } = useFetchActivitiesDef();
 
   // React Router navigation
   const navigate = useNavigate();
@@ -180,21 +175,26 @@ export default function Editor() {
   };
 
   // --- 新增節點功能 ---
-  const handleAddNode = useCallback((type: string) => {
+  const handleAddNode = useCallback((activity: ActivityDefinition) => {
     const id = Date.now().toString();
+
+    const defaultParams: Record<string, any> = {};
+    if (activity.input_schema?.properties) {
+      Object.entries(activity.input_schema.properties).forEach(([key, prop]) => {
+        defaultParams[key] = prop.default ?? (prop.type === 'number' ? 0 : prop.type === 'string' ? '' : null);
+      });
+    }
+
     const newNode: Node = {
       id,
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       data: { 
-        label: type,
-        activityType: type, 
-        params: type === "Move" ? { x: 0, y: 0, orientation: 0}
-              : type === "Sleep" ? { duration: 1000 } 
-              : type === "TTS" ? { text: "" }
-              : type === "Head" ? { angle: 0 }
-              : {}
+        label: activity.name,
+        activityType: activity.activity_type,
+        inputSchema: activity.input_schema,
+        params: defaultParams,
       },
-      type: 'action',
+      type: activity.node_type,
     };
     setNodes((nds) => [...nds, newNode]);
   }, []);
@@ -243,16 +243,16 @@ export default function Editor() {
             TODO: Action Node should fetch from backend
           */}
           <div className="flex items-center gap-2">
-            {activityOptions.map((option) => (
+            {activitiesDef?.map((activity) => (
               <Button
-                key={option.type}
+                key={activity.activity_type}
                 variant="outline"
                 size="sm"
-                onClick={() => handleAddNode(option.type)}
+                onClick={() => handleAddNode(activity)}
                 disabled={false}
               >
                 <Plus className="h-3 w-3 mr-1" />
-                {option.label}
+                {activity.name}
               </Button>
             ))}
           </div>

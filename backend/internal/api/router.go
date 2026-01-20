@@ -27,6 +27,9 @@ func NewRouter(app *config.AppConfig) *gin.Engine {
 
 	apiV1 := router.Group("/api/v1")
 	{
+		// Acitivties
+		apiV1.GET("/activities", h.GetActivities)
+
 		// Workflows for manually trigger
 		apiV1.POST("/workflows", h.SaveWorkflow)
 		apiV1.GET("/workflows", h.GetWorkflows)

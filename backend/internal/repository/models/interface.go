@@ -6,3 +6,7 @@ type WorkflowInterface interface {
 	GetByID(id string) (*Workflow, error)
 	Delete(workflowId string) error
 }
+
+type ActivityInterface interface {
+	Get() ([]ActivityDefinition, error)
+}
