@@ -30,7 +30,7 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
 
   if (!isOpen || !node) return null;
 
-  const { inputSchema } = data; 
+  const { inputSchema } = data ?? {}; 
 
   const handleChange = (key: string, value: any, type: string) => {
     setFormValues(prev => ({

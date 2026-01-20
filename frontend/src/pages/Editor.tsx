@@ -19,6 +19,7 @@ import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Plus, Pause, Play, Pencil } from 'lucide-react';
 import type { ActivityDefinition } from '@/types/activities';
+import { AIGenerateFlowModal } from '@/components/dashboard/GenerateFlowModal';
 
 // --- Register Custom Nodes ---
 const nodeTypes = {
@@ -68,10 +69,13 @@ export default function Editor() {
   useEffect(() => {
     if (!workflowDetail || !workflowDetail.nodes) return;
 
-    const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(workflowDetail.nodes);
+    const { nodes: newNodes, edges: newEdges } = transformBackToReactFlow(
+      workflowDetail.nodes,
+      activitiesDef
+    );
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [workflowDetail]);
+  }, [workflowDetail, activitiesDef]);
 
   // --- Workflow 執行狀態監控 ---
   const { setIsMonitoring, workflowStatus, currentNode, currentStep } = useWorkflowMonitor(workflowId!);
@@ -247,9 +251,10 @@ export default function Editor() {
   return (
     <div className="w-screen h-screen flex flex-col">
       {/* Toolbar */}
-      <header className="border-b bg-card px-4 py-3">
+      {/* Toolbar - 只在大螢幕顯示 */}
+      <header className="border-b bg-card px-4 py-3 hidden lg:block">
         {/* Desktop Layout */}
-        <div className="hidden lg:flex items-center justify-between">
+        <div className="flex items-center justify-between">
           {/* Left: Back + Title + Mode Toggle */}
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
@@ -309,14 +314,17 @@ export default function Editor() {
           <div className="flex items-center gap-2">
             {/* Save - 只在編輯模式顯示 */}
             {isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveWorkflow}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
+              <>
+                <AIGenerateFlowModal />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveWorkflow}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+              </>
             )}
 
             {/* Run/Pause/Resume - 只在執行模式顯示 */}
@@ -355,6 +363,18 @@ export default function Editor() {
             )}
           </div>
         </div>
+      </header>
+
+      {/* Mobile: 只顯示返回按鈕，toolbar 隱藏 */}
+      <header className="border-b bg-card px-3 py-2 flex items-center justify-between lg:hidden">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-center flex-1">
+          <h1 className="font-semibold text-sm truncate">{workflowName}</h1>
+          <WorkflowStatusBadge status={workflowStatus} currentStep={currentStep || ""} />
+        </div>
+        <div className="w-8" /> {/* Spacer for balance */}
       </header>
 
       {/* React Flow Canvas */}

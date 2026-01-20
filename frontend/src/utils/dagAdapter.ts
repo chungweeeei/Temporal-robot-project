@@ -1,5 +1,6 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { NodeInfo, BaseParams, ActivityType} from '../types/workflows';
+import type { ActivityDefinition } from '../types/activities';
 
 export const transformToDagPayload = (
   nodes: Node[],
@@ -41,8 +42,14 @@ export const transformToDagPayload = (
 
 
 export const transformBackToReactFlow = (
-  backendNodes: Record<string, NodeInfo>
+  backendNodes: Record<string, NodeInfo>,
+  activitiesDef?: ActivityDefinition[]
 ): { nodes: Node[]; edges: Edge[] } => {
+
+  // 建立 activityType -> inputSchema 的映射表
+  const schemaMap = new Map(
+    activitiesDef?.map((def) => [def.activity_type, def.input_schema]) ?? []
+  );
 
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -90,6 +97,7 @@ export const transformBackToReactFlow = (
       data: {
         label: node.type,
         activityType: node.type,
+        inputSchema: schemaMap.get(node.type) ?? null,
         params: node.params || {},
       }
     };
