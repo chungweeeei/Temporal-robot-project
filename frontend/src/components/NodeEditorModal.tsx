@@ -1,5 +1,5 @@
 import type { Node } from '@xyflow/react';
-import type { FlowNodeData, BaseParams, MoveParams, SleepParams, HeadParams, TTSParams } from '../types/schema';
+import type { BaseParams, MoveParams, SleepParams, HeadParams, TTSParams } from '../types/workflows';
 
 interface NodeEditorModalProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
 
   if (!isOpen || !node) return null;
 
-  const data = node.data as FlowNodeData;
+  const data = node.data;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

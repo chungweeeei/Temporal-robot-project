@@ -12,7 +12,8 @@ export function useWorkflowMonitor(workflowId: string) {
     const { data: statusData } = useFetchWorkflowStatus(workflowId || '', isMonitoring);
 
     const workflowStatus: WorkflowStatusDef = useMemo(() => {
-        if (!statusData) return isMonitoring ? 'Running' : 'Idle';
+        if (!isMonitoring) return 'Idle';
+        if (!statusData) return 'Running';
         return statusData.status;
     }, [statusData, isMonitoring]);
 

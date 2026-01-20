@@ -1,8 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { FlowNodeData } from '../../types/schema';
 
 export default function ActionNode({ data }: NodeProps) {
-  const { label } = data as FlowNodeData;
+  const label = data.label as string;
   
   return (
     <div className="flex bg-white rounded-xl shadow-md border border-gray-200 w-[180px] transition-all hover:shadow-xl hover:scale-105 hover:border-blue-400">

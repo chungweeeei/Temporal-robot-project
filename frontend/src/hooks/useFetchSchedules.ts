@@ -40,6 +40,7 @@ export function useFetchSchedules() {
   return useQuery<Schedule[]>({
     queryKey: ["schedules"],
     queryFn: fetchSchedules,
+    refetchInterval: 1000,
   });
 }
 

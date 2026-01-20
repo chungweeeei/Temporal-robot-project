@@ -6,7 +6,6 @@ export const transformToDagPayload = (
   edges: Edge[]
 ): Record<string, NodeInfo> => {
   const payloadNodes: Record<string, NodeInfo> = {};
-
   // 1. 初始化所有節點
   nodes.forEach((node) => {
     payloadNodes[node.id] = {

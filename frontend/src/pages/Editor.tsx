@@ -39,12 +39,12 @@ const defaultNodes = [{
   id: 'start',
   type: 'start',
   position: { x: 0, y: 0 },
-  data: { label: 'Start' },
+  data: { label: 'Start', activityType: "Start"},
 },{
   id: 'end',
   type: 'end',
   position: { x: 1000, y: 0 },
-  data: { label: 'End' },
+  data: { label: 'End', activityType: "End"},
 }];
 
 export default function Editor() {
@@ -182,23 +182,19 @@ export default function Editor() {
   // --- 新增節點功能 ---
   const handleAddNode = useCallback((type: string) => {
     const id = Date.now().toString();
-    const isCondition = type === 'Condition';
-    
     const newNode: Node = {
       id,
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       data: { 
         label: type,
         activityType: type, 
-        params: type === 'Move' ? { x: 0, y: 0 } 
-              : type === 'Sleep' ? { duration: 1000 } 
-              : {},
-        retryPolicy: {
-          maxAttempts: 1,
-          initialInterval: 1000,
-        }
+        params: type === "Move" ? { x: 0, y: 0, orientation: 0}
+              : type === "Sleep" ? { duration: 1000 } 
+              : type === "TTS" ? { text: "" }
+              : type === "Head" ? { angle: 0 }
+              : {}
       },
-      type: isCondition ? 'condition' : 'action',
+      type: 'action',
     };
     setNodes((nds) => [...nds, newNode]);
   }, []);
