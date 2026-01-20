@@ -14,7 +14,6 @@ export function CreateWorkflowModal() {
   // hook for react router navigation
   const navigate = useNavigate();
 
-
   return (
     <CustomDialog
       open={open}

@@ -25,7 +25,7 @@ export interface TTSParams extends BaseParams {
 
 export interface NodeInfo {
     id: string;
-    type: ActivityType;
+    type: ActivityType | "Start" | "End";
     params: BaseParams;
     transitions: {
         next?: string;

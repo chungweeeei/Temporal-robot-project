@@ -1,21 +1,10 @@
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
-import { type NodeInfo } from "@/types/workflows";
 
-type TriggerWorkflowPayload = {
-    workflow_id: string;
-    workflow_name: string;
-    nodes: Record<string, NodeInfo>;
-}
-
-async function triggerWorkflow(payload: TriggerWorkflowPayload){
+async function triggerWorkflow(workflowId: string){
 
     const response = await axios.post(
-        `http://localhost:3000/api/v1/workflows/${payload.workflow_id}/trigger`,
-        {
-            ...payload,
-            root_node_id: "start",
-        },
+        `http://localhost:3000/api/v1/workflows/${workflowId}/trigger`,
         {
             headers: {
                 "Content-Type": "application/json",
@@ -71,7 +60,7 @@ async function resumeWorkflow(workflowId: string){
 
 export const useTriggerWorkflow = () => {
     return useMutation({
-        mutationFn: (payload: TriggerWorkflowPayload) => triggerWorkflow(payload),
+        mutationFn: (workflowId: string) => triggerWorkflow(workflowId),
     });
 }
 

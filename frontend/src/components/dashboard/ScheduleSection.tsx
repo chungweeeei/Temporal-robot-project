@@ -1,8 +1,10 @@
+import { memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, PauseCircle, PlayCircle, Clock, Timer, Loader2 } from "lucide-react";
+import { Calendar, PauseCircle, PlayCircle, Clock, Timer, Loader2, Trash2 } from "lucide-react";
 import { CreateScheduleModal } from "./CreateScheduleModal";
 import { useFetchSchedules } from "@/hooks/useFetchSchedules";
 import { usePauseSchedule, useUnpauseSchedule } from "@/hooks/useControlSchedule";
+import { useDeleteSchedule } from "@/hooks/useDeleteSchedule";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Schedule, ScheduleRange } from "@/types/schema";
@@ -110,12 +112,20 @@ function formatDate(dateStr?: string) {
   }).format(date);
 }
 
-export function ScheduleSection() {
-  const { data: schedulesData, isLoading, isError } = useFetchSchedules();
+// 獨立的 ScheduleCard component
+interface ScheduleCardProps {
+  schedule: Schedule;
+}
+
+const ScheduleCard = memo(function ScheduleCard({ schedule }: ScheduleCardProps) {
+
   const pauseSchedule = usePauseSchedule();
   const unpauseSchedule = useUnpauseSchedule();
+  const deleteSchedule = useDeleteSchedule();
 
-  const handleTogglePause = (schedule: Schedule) => {
+  const isPending = pauseSchedule.isPending || unpauseSchedule.isPending;
+
+  const handleTogglePause = () => {
     if (schedule.paused) {
       unpauseSchedule.mutate(schedule.schedule_id);
     } else {
@@ -123,7 +133,81 @@ export function ScheduleSection() {
     }
   };
 
-  const schedules: Schedule[] = Array.isArray(schedulesData) ? schedulesData : (schedulesData as any)?.schedules || [];
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete this schedule?")) {
+      deleteSchedule.mutate(schedule.schedule_id);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
+      <div className="space-y-1">
+        <div className="font-medium flex items-center gap-2">
+          {schedule.schedule_id}
+          <Badge variant={schedule.paused ? "secondary" : "default"} className="text-xs">
+            {schedule.paused ? "Paused" : "Running"}
+          </Badge>
+        </div>
+        <div className="text-sm text-muted-foreground flex items-center gap-2">
+          <span className="font-semibold">Schedule:</span>
+          <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">
+            {formatSpec(schedule.spec)}
+          </code>
+        </div>
+
+        <div className="flex flex-col gap-1 mt-2 sm:flex-row sm:gap-4 sm:items-center">
+          {schedule.recent_run && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80" title="Last Execute Time">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Last: {formatDate(schedule.recent_run)}</span>
+            </div>
+          )}
+          {schedule.upcoming_run && (
+            <div className="flex items-center gap-1.5 text-xs text-blue-600/80 dark:text-blue-400" title="Next Scheduled Run">
+              <Timer className="w-3.5 h-3.5" />
+              <span>Next: {formatDate(schedule.upcoming_run)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleTogglePause}
+          disabled={isPending}
+          className="cursor-pointer hover:bg-muted"
+          title={schedule.paused ? "Resume Schedule" : "Pause Schedule"}
+        >
+          {isPending ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : schedule.paused ? (
+            <PlayCircle className="h-5 w-5 text-green-500" />
+          ) : (
+            <PauseCircle className="h-5 w-5 text-muted-foreground" />
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleDelete}
+          disabled={deleteSchedule.isPending}
+          className="cursor-pointer hover:bg-muted text-red-500 hover:text-red-700 hover:bg-red-100"
+          title="Delete Schedule"
+        >
+          {deleteSchedule.isPending ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : (
+            <Trash2 className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+export function ScheduleSection() {
+  const { data: schedules, isLoading, isError } = useFetchSchedules();
 
   return (
     <Card className="mt-8">
@@ -144,65 +228,14 @@ export function ScheduleSection() {
           <div className="text-center py-8 text-muted-foreground">Loading schedules...</div>
         ) : isError ? (
           <div className="text-center py-8 text-red-500">Failed to load schedules</div>
-        ) : schedules.length === 0 ? (
+        ) : schedules?.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg">
             No schedules found. Create one nicely!
           </div>
         ) : (
           <div className="space-y-4">
-            {schedules.map((schedule) => (
-              <div
-                key={schedule.schedule_id}
-                className="flex items-center justify-between p-4 border rounded-lg bg-card"
-              >
-                <div className="space-y-1">
-                  <div className="font-medium flex items-center gap-2">
-                    {schedule.schedule_id}
-                    <Badge variant={schedule.paused ? "secondary" : "default"} className="text-xs">
-                       {schedule.paused ? "Paused" : "Running"}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-2">
-                    <span className="font-semibold">Schedule:</span>
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">
-                      {formatSpec(schedule.spec)}
-                    </code>
-                  </div>
-                  
-                  <div className="flex flex-col gap-1 mt-2 sm:flex-row sm:gap-4 sm:items-center">
-                    {schedule.recent_run && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80" title="Last Execute Time">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Last: {formatDate(schedule.recent_run)}</span>
-                      </div>
-                    )}
-                    {schedule.upcoming_run && (
-                      <div className="flex items-center gap-1.5 text-xs text-blue-600/80 dark:text-blue-400" title="Next Scheduled Run">
-                         <Timer className="w-3.5 h-3.5" />
-                         <span>Next: {formatDate(schedule.upcoming_run)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button 
-                     variant="ghost" 
-                     size="icon" 
-                     onClick={() => handleTogglePause(schedule)}
-                     disabled={pauseSchedule.isPending || unpauseSchedule.isPending}
-                     className="cursor-pointer hover:bg-muted"
-                     title={schedule.paused ? "Resume Schedule" : "Pause Schedule"}
-                   >
-                     {pauseSchedule.isPending || unpauseSchedule.isPending ? (
-                       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                     ) : schedule.paused ? (
-                       <PlayCircle className="h-5 w-5 text-green-500" />
-                     ) : (
-                       <PauseCircle className="h-5 w-5 text-muted-foreground" />
-                     )}
-                   </Button>
-                </div>
-              </div>
+            {schedules?.map((schedule) => (
+              <ScheduleCard key={schedule.schedule_id} schedule={schedule} />
             ))}
           </div>
         )}

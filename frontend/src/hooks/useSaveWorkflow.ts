@@ -9,7 +9,7 @@ export type SaveWorkflowPayload = {
     nodes: Record<string, NodeInfo>;
 }
 
-export async function saveWorkflow(payload: SaveWorkflowPayload){
+async function saveWorkflow(payload: SaveWorkflowPayload){
     const response = await axios.post(
         "http://localhost:3000/api/v1/workflows",
         {

@@ -5,7 +5,7 @@ import { useFetchWorkflowStatus } from "@/hooks/useFetchWorkflowStatus";
 import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from "@/hooks/useControlWorkflow";
 import { useDeleteWorkflow } from "@/hooks/useDeleteWorkflow";
 import { useWorkflowStore } from "@/store/useWorkflowStore";
-import type { WorkflowInfo, WorkflowStatusDef } from "@/types/workflows";
+import type { WorkflowStatusDef } from "@/types/workflows";
 import { Workflow } from "lucide-react";
 
 export function WorkflowList() {
@@ -46,10 +46,7 @@ export function WorkflowList() {
   }, [activeWorkflowId, activeWorkflowStatus, setActiveWorkflowId]);
 
   const handleTrigger = (workflowId: string) => {
-    const workflow = workflows.find((w: WorkflowInfo) => w.workflow_id === workflowId);
-    if (!workflow) return;
-
-    triggerWorkflow.mutate(workflow, {
+    triggerWorkflow.mutate(workflowId, {
       onSuccess: () => {
         setActiveWorkflowId(workflowId);
       },

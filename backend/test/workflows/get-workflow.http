@@ -2,5 +2,5 @@ GET http://localhost:3000/api/v1/workflows
 Content-Type: application/json
 
 ###
-GET http://localhost:3000/api/v1/workflows/271c79b2-1dc7-4522-b8d5-472b677fc697
+GET http://localhost:3000/api/v1/workflows/workflow-1768872752089
 Content-Type: application/json

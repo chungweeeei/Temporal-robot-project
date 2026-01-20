@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { WorkflowStatus } from "@/types/workflows";
 
 
-export async function fetchWorkflowStatus(workflowId: string): Promise<WorkflowStatus> {
+async function fetchWorkflowStatus(workflowId: string): Promise<WorkflowStatus> {
 
     const response = await axios.get<WorkflowStatus>(
         `http://localhost:3000/api/v1/workflows/${workflowId}/status`,

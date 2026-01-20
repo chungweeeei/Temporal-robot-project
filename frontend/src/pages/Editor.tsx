@@ -5,7 +5,6 @@ import { ReactFlow, Background, Controls, type Node, type Edge, addEdge, type On
 import '@xyflow/react/dist/style.css';
 
 import type { BaseParams, MoveParams, SleepParams } from '@/types/workflows';
-import ConditionNode from '@/components/nodes/ConditionNode';
 import ActionNode from '@/components/nodes/ActionNode';
 import StartNode from '@/components/nodes/StartNode';
 import EndNode from '@/components/nodes/EndNode';
@@ -13,21 +12,14 @@ import NodeEditorModal from '@/components/NodeEditorModal';
 import { WorkflowStatusBadge } from '@/components/shared/WorkflowStatusBadge';
 import { transformBackToReactFlow, transformToDagPayload } from '@/utils/dagAdapter';
 import { useSaveWorkflow } from '@/hooks/useSaveWorkflow';
-import { useFetchWorkflowById } from '@/hooks/useFetchWorkflowById';
+import { useFetchWorkflowById } from '@/hooks/useFetchWorkflows';
 import { useWorkflowMonitor } from '@/hooks/useWorkflowMonitor';
 import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ArrowLeft, Save, Plus, ChevronDown, Pause, Play } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Pause, Play } from 'lucide-react';
 
 // --- Register Custom Nodes ---
 const nodeTypes = {
-  condition: ConditionNode,
   action: ActionNode,
   start: StartNode,
   end: EndNode,
@@ -60,13 +52,12 @@ export default function Editor() {
 
   // state passed by useLocation in react-router
   const location = useLocation();
-  const state = location.state as { operation?: string; workflowName?: string };
-  // const isCreateMode = state?.operation === 'create';
-  // const isCreateMode = false;
+  const state = location.state as { operation: string; workflowName?: string };
+  const isCreateMode = state.operation === 'create';
   
   // Fetch workflow detail from backend
-  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: true});
-  const workflowName = workflowDetail?.workflow_name || "Untitled Workflow";
+  const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: !isCreateMode});
+  const workflowName = workflowDetail?.workflow_name || state.workflowName;
 
   // React Router navigation
   const navigate = useNavigate();
@@ -136,7 +127,7 @@ export default function Editor() {
       nodes: payload,
     }, {
       onSuccess: () => {
-        console.log("Workflow saved successfully.");
+        alert("Workflow saved successfully.");
       },
       onError: (error) => {
         alert(`Failed to save: ${error.message}`);
@@ -146,16 +137,11 @@ export default function Editor() {
 
   // --- Workflow 執行狀態監控 ---
   const { setIsMonitoring, workflowStatus, currentStep } = useWorkflowMonitor(workflowId!);
-
+  
   const triggerMutation = useTriggerWorkflow();
   const handleTriggerWorkflow = () => {
     if (!workflowId) return;
-    const payload = transformToDagPayload(nodes, edges);
-    triggerMutation.mutate({
-      workflow_id: workflowId,
-      workflow_name: workflowName,
-      nodes: payload,
-    }, {
+    triggerMutation.mutate(workflowId, {
       onSuccess: () => {
         console.log("Workflow triggered successfully.");
         setIsMonitoring(true);
@@ -206,7 +192,6 @@ export default function Editor() {
         activityType: type, 
         params: type === 'Move' ? { x: 0, y: 0 } 
               : type === 'Sleep' ? { duration: 1000 } 
-              : type === 'Condition' ? { expression: 'true' }
               : {},
         retryPolicy: {
           maxAttempts: 1,
@@ -257,7 +242,10 @@ export default function Editor() {
             </div>
           </div>
 
-          {/* Center: Add Node Buttons */}
+          {/* 
+            Center: Add Node Buttons 
+            TODO: Action Node should fetch from backend
+          */}
           <div className="flex items-center gap-2">
             {activityOptions.map((option) => (
               <Button
@@ -290,8 +278,17 @@ export default function Editor() {
                 size="sm"
                 onClick={isPaused ? handleResumeWorkflow : handlePauseWorkflow}
               >
-                <Pause className="h-4 w-4 mr-2" />
-                {isPaused ? 'Resume' : 'Pause'}
+                {isPaused ? (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Resume
+                  </>
+                  ) : (
+                  <>
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause
+                  </>
+                )}
               </Button>
             ) : (
               <Button
@@ -304,101 +301,6 @@ export default function Editor() {
                 {triggerMutation.isPending ? 'Starting...' : 'Run'}
               </Button>
             )}
-          </div>
-        </div>
-
-        {/* Tablet/Mobile Layout */}
-        <div className="lg:hidden space-y-3">
-          {/* Row 1: Back + Title + Actions */}
-          <div className="flex items-center justify-between">
-            {/* Left: Back + Title */}
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="shrink-0">
-                <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
-              <div className="h-6 w-px bg-border shrink-0" />
-              <div className="min-w-0">
-                <h1 className="font-semibold truncate">{workflowName}</h1>
-                {/* <WorkflowStatusBadge status={workflowStatus} currentStep={"Move"} /> */}
-              </div>
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-              >
-                <Save className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Save</span>
-              </Button>
-
-              {/* {isRunning || isPaused ? (
-                <Button
-                  variant={isPaused ? 'default' : 'secondary'}
-                  size="sm"
-                  onClick={isPaused ? handleResumeWorkflow : handlePauseWorkflow}
-                >
-                  <Pause className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{isPaused ? 'Resume' : 'Pause'}</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleTriggerWorkflow}
-                  disabled={triggerMutation.isPending}
-                >
-                  <Play className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{triggerMutation.isPending ? 'Starting...' : 'Run'}</span>
-                </Button>
-              )} */}
-            </div>
-          </div>
-
-          {/* Row 2: Add Node - Dropdown on mobile, buttons on tablet */}
-          <div className="flex items-center gap-2">
-            {/* Mobile: Dropdown */}
-            <div className="sm:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" disabled={false}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Node
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {activityOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.type}
-                      onClick={() => handleAddNode(option.type)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Tablet: Scrollable buttons */}
-            <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1">
-              {activityOptions.map((option) => (
-                <Button
-                  key={option.type}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNode(option.type)}
-                  disabled={false}
-                  className="shrink-0"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  {option.label}
-                </Button>
-              ))}
-            </div>
           </div>
         </div>
       </header>

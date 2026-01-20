@@ -1,7 +1,8 @@
 import axios from "axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryClient } from "@/utils/http";
+import { useMutation } from "@tanstack/react-query";
 
-export async function createWorkflow(workflowName: string){
+async function createWorkflow(workflowName: string){
 
     const response = await axios.post(
         "http://localhost:3000/api/v1/workflows",
@@ -24,12 +25,9 @@ export async function createWorkflow(workflowName: string){
 }
 
 export const useCreateWorkflow = () => {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (workflowName: string) => createWorkflow(workflowName),
         onSuccess: () => {
-            // 建立成功後，重新抓取 workflow 列表
             queryClient.invalidateQueries({ queryKey: ['workflows'] });
         }
     });

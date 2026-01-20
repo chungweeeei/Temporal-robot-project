@@ -31,11 +31,11 @@ func NewRouter(app *config.AppConfig) *gin.Engine {
 		apiV1.POST("/workflows", h.SaveWorkflow)
 		apiV1.GET("/workflows", h.GetWorkflows)
 		apiV1.GET("/workflows/:id", h.GetWorkflowById)
-		apiV1.DELETE("/workflows/:id", h.DeleteWorkflow)
 		apiV1.GET("/workflows/:id/status", h.GetWorkflowStatus)
 		apiV1.POST("/workflows/:id/trigger", h.TriggerWorkflow)
 		apiV1.POST("/workflows/:id/pause", h.PauseWorkflow)
 		apiV1.POST("/workflows/:id/resume", h.ResumeWorkflow)
+		apiV1.DELETE("/workflows/:id", h.DeleteWorkflow)
 
 		// Schedules for scheduled trigger
 		apiV1.POST("/schedules", h.CreateSchedule)

@@ -19,7 +19,6 @@ export interface CreateSchedulePayload {
   schedule_id: string;
   workflow_id: string;
   cron_expr: string;
-  timezone?: string;
 }
 
 export interface ScheduleRange {

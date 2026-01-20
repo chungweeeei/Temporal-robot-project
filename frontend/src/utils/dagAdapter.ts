@@ -1,5 +1,5 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { NodeInfo } from '../types/workflows';
+import type { NodeInfo, BaseParams, ActivityType} from '../types/workflows';
 
 export const transformToDagPayload = (
   nodes: Node[],
@@ -11,8 +11,8 @@ export const transformToDagPayload = (
   nodes.forEach((node) => {
     payloadNodes[node.id] = {
       id: node.id,
-      type: node.data.activityType,
-      params: node.data.params,
+      type: node.data.activityType as ActivityType,
+      params: node.data.params as BaseParams,
       transitions: {},
     };
   });

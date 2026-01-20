@@ -10,7 +10,6 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/internal/repository/models"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -62,57 +61,30 @@ func (h *Handler) SaveWorkflow(c *gin.Context) {
 
 func (h *Handler) TriggerWorkflow(c *gin.Context) {
 
-	var req SaveWorkflowRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		h.App.ErrorLog.Println("Invalid payload:", err)
-		c.JSON(http.StatusBadRequest,
-			gin.H{"message": fmt.Sprintf("Invalid payload: %v", err)})
+	workflowId := c.Param("id")
+	if workflowId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Workflow Id is required"})
 		return
 	}
 
-	// background update workflow information into database
-	go func() {
-
-		nodes, err := json.Marshal(req.Nodes)
-		if err != nil {
-			h.App.ErrorLog.Println("Unable to marshal nodes:", err)
-			return
-		}
-
-		workflow := models.Workflow{
-			WorkflowID:   req.WorkflowID,
-			WorkflowName: req.WorkflowName,
-			RootNodeID:   "start",
-			Nodes:        nodes,
-		}
-
-		_, err = h.App.Model.Workflow.Upsert(workflow)
-		if err != nil {
-			h.App.ErrorLog.Println("Unable to save workflow:", err)
-			return
-		}
-
-		h.App.InfoLog.Println("Workflow saved successfully :", req.WorkflowID)
-	}()
-
-	// 2. make sure workflow ID is set
-	if req.WorkflowID == "" {
-		req.WorkflowID = "robot-routine-" + uuid.New().String()
+	record, err := h.App.Model.Workflow.GetByID(workflowId)
+	if err != nil {
+		h.App.ErrorLog.Println("Unable to get workflow:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get workflow"})
+		return
 	}
-
-	h.App.InfoLog.Println("Received workflow trigger request:", req)
 
 	// TODO: thinking about the request schema different between received from client and internal usage
 	// 3. setting workflow options
-	nodesBytes, _ := json.Marshal(req.Nodes)
+	nodesBytes, _ := json.Marshal(record.Nodes)
 
 	// 4. unmarshal req.
 	var nodes map[string]pkg.WorkflowNode
 	json.Unmarshal(nodesBytes, &nodes)
 
 	var payload = pkg.WorkflowPayload{
-		WorkflowID: req.WorkflowID,
-		RootNodeID: "start",
+		WorkflowID: record.WorkflowID,
+		RootNodeID: record.RootNodeID,
 		Nodes:      nodes,
 	}
 	workflowOptions := client.StartWorkflowOptions{

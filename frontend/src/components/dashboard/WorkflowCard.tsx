@@ -50,7 +50,12 @@ export function WorkflowCard({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate(`/editor/${workflowId}`)}
+            onClick={() => navigate(`/editor/${workflowId}`, {
+              state: {
+                operation: "edit",
+                workflowName: workflowName
+              }
+            })}
             disabled={false}
             title="Edit workflow"
           >

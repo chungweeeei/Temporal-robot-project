@@ -1,2 +1,2 @@
-POST http://localhost:3000/api/v1/schedules/task-check-schedule-001/resume
+POST http://localhost:3000/api/v1/schedules/schedule-1768879132132/resume
 Content-Type: application/json

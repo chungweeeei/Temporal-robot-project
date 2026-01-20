@@ -13,39 +13,36 @@ import { Input } from "@/components/ui/input";
 import { useCreateSchedule } from "@/hooks/useCreateSchedule";
 import { useFetchWorkflow } from "@/hooks/useFetchWorkflows";
 import { Plus } from "lucide-react";
+import type { WorkflowInfo } from "@/types/workflows";
 
 export function CreateScheduleModal() {
   const [open, setOpen] = useState(false);
-  const [scheduleId, setScheduleId] = useState("");
   const [workflowId, setWorkflowId] = useState("");
   const [cronExpr, setCronExpr] = useState("*/5 * * * *");
-  const [timezone, setTimezone] = useState("Asia/Taipei");
 
   const createSchedule = useCreateSchedule();
   const { data: workflows = [] } = useFetchWorkflow();
 
   const handleCreate = () => {
-    if (!scheduleId.trim() || !workflowId || !cronExpr.trim()) {
-      alert("請填寫完整資訊 (Timezone 預設 Asia/Taipei)");
+    if (!workflowId || !cronExpr.trim()) {
+      alert("Please fill in all required fields.");
       return;
     }
 
     createSchedule.mutate(
       {
-        schedule_id: scheduleId.trim(),
-        workflow_id: "RobotWorkflow",
+        schedule_id: "schedule-" + Date.now(),
+        workflow_id: workflowId,
         cron_expr: cronExpr.trim(),
-        timezone: timezone.trim() || undefined,
       },
       {
         onSuccess: () => {
           setOpen(false);
-          setScheduleId("");
           setWorkflowId("");
-          // Reset to defaults if desired
+          setCronExpr("*/5 * * * *");
         },
         onError: (error) => {
-          alert(`建立 Schedule 失敗: ${error.message}`);
+          alert(`Failed to create schedule: ${error.message}`);
         },
       }
     );
@@ -61,9 +58,9 @@ export function CreateScheduleModal() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>建立新的 Schedule</DialogTitle>
+          <DialogTitle>Create New Schedule</DialogTitle>
           <DialogDescription>
-            為現有的 Workflow 建立自動排程。
+            Create an automatic schedule for an existing Workflow.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -77,24 +74,14 @@ export function CreateScheduleModal() {
               onChange={(e) => setWorkflowId(e.target.value)}
             >
               <option value="" disabled>
-                選擇 Workflow
+                Select Workflow
               </option>
-              {workflows.map((wf: any) => (
+              {workflows.map((wf: WorkflowInfo) => (
                 <option key={wf.workflow_id} value={wf.workflow_id}>
-                  {wf.workflow_name || wf.workflow_id}
+                  {wf.workflow_name}
                 </option>
               ))}
             </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">
-              Schedule ID
-            </label>
-            <Input
-              placeholder="e.g. task-check-schedule-001"
-              value={scheduleId}
-              onChange={(e) => setScheduleId(e.target.value)}
-            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium leading-none">
@@ -106,23 +93,13 @@ export function CreateScheduleModal() {
               onChange={(e) => setCronExpr(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">
-              Timezone
-            </label>
-            <Input
-              placeholder="Asia/Taipei"
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-            />
-          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            取消
+            Cancel
           </Button>
           <Button onClick={handleCreate} disabled={createSchedule.isPending}>
-            {createSchedule.isPending ? "建立中..." : "建立"}
+            {createSchedule.isPending ? "Creating..." : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

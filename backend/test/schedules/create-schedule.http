@@ -2,8 +2,8 @@ POST http://localhost:3000/api/v1/schedules
 Content-Type: application/json
 
 {
-    "schedule_id": "task-check-schedule-001",
-    "workflow_id": "RobotWorkflow",
+    "schedule_id": "test-workflow2-schedule-001",
+    "workflow_id": "271c79b2-1dc7-4522-b8d5-472b677fc697",
     "cron_expr": "*/5 * * * *",
     "timezone": "Asia/Taipei"
 }

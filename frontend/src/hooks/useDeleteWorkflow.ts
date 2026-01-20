@@ -1,5 +1,6 @@
 import axios from "axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryClient } from "@/utils/http";
+import { useMutation } from "@tanstack/react-query";
 
 async function deleteWorkflow(workflowId: string){
 
@@ -20,8 +21,6 @@ async function deleteWorkflow(workflowId: string){
 }
 
 export const useDeleteWorkflow = () => {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (workflowId: string) => deleteWorkflow(workflowId),
         onSuccess: () => {

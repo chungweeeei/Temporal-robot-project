@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
+	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -100,6 +102,21 @@ func (h *Handler) CreateSchedule(c *gin.Context) {
 		return
 	}
 
+	// check workflow id existence
+	record, err := h.App.Model.Workflow.GetByID(req.WorkflowID)
+	if err != nil {
+		h.App.ErrorLog.Println("Unable to get workflow:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get workflow"})
+		return
+	}
+
+	var nodes map[string]pkg.WorkflowNode
+	if err := json.Unmarshal([]byte(record.Nodes), &nodes); err != nil {
+		h.App.ErrorLog.Println("Unable to unmarshal nodes:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to process workflow data"})
+		return
+	}
+
 	// register temporal schedule client
 	scheduleClient := h.App.TemporalClient.ScheduleClient()
 
@@ -112,9 +129,17 @@ func (h *Handler) CreateSchedule(c *gin.Context) {
 			TimeZoneName:    timezone,
 		},
 		Action: &client.ScheduleWorkflowAction{
-			ID:        fmt.Sprintf("%s-workflow", req.ScheduleID),
-			Workflow:  workflows.RobotScheduleWorkflow,
-			TaskQueue: "ROBOT_SCHEDULE_QUEUE",
+			// ID: 當schedule啟動workflow時產生的workflowID, ex: test-workflow2-schedule-001-2026-01-20T02:06:33Z
+			ID: req.ScheduleID,
+			// 註冊在 Temporal server 的 Workflow 名稱
+			Workflow: workflows.RobotWorkflow,
+			// 如果 TaskQueue 也是存在 DB，可以用 record.TaskQueue，否則這裡是寫死的
+			TaskQueue: "ROBOT_TASK_QUEUE",
+			Args: []interface{}{pkg.WorkflowPayload{
+				WorkflowID: record.WorkflowID,
+				RootNodeID: record.RootNodeID,
+				Nodes:      nodes,
+			}},
 		},
 		Overlap: enums.SCHEDULE_OVERLAP_POLICY_SKIP,
 	})
@@ -125,8 +150,6 @@ func (h *Handler) CreateSchedule(c *gin.Context) {
 			gin.H{"message": "Unable to create schedule"})
 		return
 	}
-
-	h.App.InfoLog.Printf("Schedule created: %s", scheduleHandle.GetID())
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "Schedule created successfully",
@@ -150,7 +173,7 @@ func (h *Handler) GetSchedules(c *gin.Context) {
 		return
 	}
 
-	var schedules []ScheduleInfo
+	schedules := []ScheduleInfo{}
 	for listView.HasNext() {
 		scheduleEntry, err := listView.Next()
 		if err != nil {
@@ -194,9 +217,7 @@ func (h *Handler) GetSchedules(c *gin.Context) {
 		schedules = append(schedules, info)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"schedules": schedules,
-	})
+	c.JSON(http.StatusOK, schedules)
 }
 
 func (h *Handler) GetScheduleById(c *gin.Context) {

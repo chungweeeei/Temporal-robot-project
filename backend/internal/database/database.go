@@ -23,7 +23,7 @@ func InitDB() *gorm.DB {
 
 func ensureDatabaseExists() {
 
-	dsn := "host=postgres.course00.orb.local user=admin password=admin dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Taipei"
+	dsn := "host=postgresql.robot-project.orb.local user=admin password=admin dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Taipei"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -56,7 +56,7 @@ func connectToDB() *gorm.DB {
 
 	count := 0
 
-	dsn := "host=postgres.course00.orb.local user=admin password=admin dbname=robot_workflow port=5432 sslmode=disable TimeZone=Asia/Taipei"
+	dsn := "host=postgresql.robot-project.orb.local user=admin password=admin dbname=robot_workflow port=5432 sslmode=disable TimeZone=Asia/Taipei"
 
 	for {
 		connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
