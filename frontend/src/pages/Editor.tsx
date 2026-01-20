@@ -17,7 +17,7 @@ import { useWorkflowMonitor } from '@/hooks/useWorkflowMonitor';
 import { useFetchActivitiesDef } from '@/hooks/useFetchActivitiesDef';
 import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks/useControlWorkflow';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Plus, Pause, Play } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Pause, Play, Pencil } from 'lucide-react';
 import type { ActivityDefinition } from '@/types/activities';
 
 // --- Register Custom Nodes ---
@@ -46,6 +46,9 @@ export default function Editor() {
   const location = useLocation();
   const state = location.state as { operation: string; workflowName?: string };
   const isCreateMode = state.operation === 'create';
+
+  // 編輯模式 vs 執行模式
+  const [isEditing, setIsEditing] = useState(true);
   
   // Fetch workflow detail from backend
   const { data: workflowDetail, isLoading } = useFetchWorkflowById(workflowId || '', { enabled: !isCreateMode});
@@ -70,6 +73,29 @@ export default function Editor() {
     setEdges(newEdges);
   }, [workflowDetail]);
 
+  // --- Workflow 執行狀態監控 ---
+  const { setIsMonitoring, workflowStatus, currentNode, currentStep } = useWorkflowMonitor(workflowId!);
+
+  // 當 workflow 開始執行時，自動切換到執行模式
+  useEffect(() => {
+    if (workflowStatus === 'Running' || workflowStatus === 'Paused') {
+      setIsEditing(false);
+    }
+  }, [workflowStatus]);
+  
+  // Effect: 當 currentNode 改變時，更新節點的 running 狀態
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isRunning: node.id === currentNode,
+        },
+      }))
+    );
+  }, [currentNode]);
+
   // --- React Flow Node Modal state ---
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -87,10 +113,11 @@ export default function Editor() {
 
   // --- Core: Double-click node to open editor ---
   const onNodeDoubleClick: NodeMouseHandler = useCallback((_event, node) => {
+    if (!isEditing) return; // 執行模式下不能編輯
     if (node.id === 'start' || node.id === 'end') return;
     setEditingNode(node);
     setModalOpen(true);
-  }, []);
+  }, [isEditing]);
 
   // --- Save changes from Modal ---
   const handleSaveNodeParams = (newParams: BaseParams | MoveParams | SleepParams) => {
@@ -130,9 +157,7 @@ export default function Editor() {
     });
   };
 
-  // --- Workflow 執行狀態監控 ---
-  const { setIsMonitoring, workflowStatus, currentStep } = useWorkflowMonitor(workflowId!);
-  
+
   const triggerMutation = useTriggerWorkflow();
   const handleTriggerWorkflow = () => {
     if (!workflowId) return;
@@ -225,7 +250,7 @@ export default function Editor() {
       <header className="border-b bg-card px-4 py-3">
         {/* Desktop Layout */}
         <div className="hidden lg:flex items-center justify-between">
-          {/* Left: Back + Title */}
+          {/* Left: Back + Title + Mode Toggle */}
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -236,82 +261,116 @@ export default function Editor() {
               <h1 className="font-semibold">{workflowName}</h1>
               <WorkflowStatusBadge status={workflowStatus} currentStep={currentStep || ""} />
             </div>
+            {/* 模式切換按鈕 */}
+            <div className="h-6 w-px bg-border" />
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={isEditing ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                disabled={isRunning || isPaused}
+              >
+                <Pencil className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
+              <Button
+                variant={!isEditing ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setIsEditing(false)}
+              >
+                <Play className="h-3 w-3 mr-1" />
+                Run
+              </Button>
+            </div>
           </div>
 
-          {/* 
-            Center: Add Node Buttons 
-            TODO: Action Node should fetch from backend
-          */}
-          <div className="flex items-center gap-2">
-            {activitiesDef?.map((activity) => (
-              <Button
-                key={activity.activity_type}
-                variant="outline"
-                size="sm"
-                onClick={() => handleAddNode(activity)}
-                disabled={false}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                {activity.name}
-              </Button>
-            ))}
-          </div>
+          {/* Center: Add Node Buttons - 只在編輯模式顯示 */}
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              {activitiesDef?.map((activity) => (
+                <Button
+                  key={activity.activity_type}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddNode(activity)}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  {activity.name}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Switch to Edit mode to modify workflow
+            </div>
+          )}
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveWorkflow}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
+            {/* Save - 只在編輯模式顯示 */}
+            {isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveWorkflow}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save
+              </Button>
+            )}
 
-            {isRunning || isPaused ? (
-              <Button
-                variant={isPaused ? 'default' : 'secondary'}
-                size="sm"
-                onClick={isPaused ? handleResumeWorkflow : handlePauseWorkflow}
-              >
-                {isPaused ? (
-                  <>
+            {/* Run/Pause/Resume - 只在執行模式顯示 */}
+            {!isEditing && (
+              <>
+                {isRunning || isPaused ? (
+                  <Button
+                    variant={isPaused ? 'default' : 'secondary'}
+                    size="sm"
+                    onClick={isPaused ? handleResumeWorkflow : handlePauseWorkflow}
+                  >
+                    {isPaused ? (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Resume
+                      </>
+                    ) : (
+                      <>
+                        <Pause className="h-4 w-4 mr-2" />
+                        Pause
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleTriggerWorkflow}
+                    disabled={triggerMutation.isPending}
+                  >
                     <Play className="h-4 w-4 mr-2" />
-                    Resume
-                  </>
-                  ) : (
-                  <>
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause
-                  </>
+                    {triggerMutation.isPending ? 'Starting...' : 'Run'}
+                  </Button>
                 )}
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleTriggerWorkflow}
-                disabled={triggerMutation.isPending}
-              >
-                <Play className="h-4 w-4 mr-2" />
-                {triggerMutation.isPending ? 'Starting...' : 'Run'}
-              </Button>
+              </>
             )}
           </div>
         </div>
       </header>
 
       {/* React Flow Canvas */}
-      <div className="flex-1">
+      <div className="flex-1 bg-slate-100">
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodesDelete={onNodesDelete}
+          onNodesChange={isEditing ? onNodesChange : undefined}
+          onEdgesChange={isEditing ? onEdgesChange : undefined}
+          onConnect={isEditing ? onConnect : undefined}
+          onNodesDelete={isEditing ? onNodesDelete : undefined}
           onNodeDoubleClick={onNodeDoubleClick}
           nodeTypes={nodeTypes}
+          nodesDraggable={isEditing}
+          nodesConnectable={isEditing}
+          elementsSelectable={isEditing}
           fitView
         >
           <Background />

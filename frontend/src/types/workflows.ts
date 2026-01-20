@@ -44,6 +44,7 @@ export interface WorkflowInfo {
 
 export interface WorkflowStatus {
     status: WorkflowStatusDef;
+    current_node: string;
     current_step: string;
 }
 

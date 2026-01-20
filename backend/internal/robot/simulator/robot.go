@@ -103,6 +103,17 @@ func (r *MockRobot) Move(missionID string, targetX, targetY float64) {
 	r.State.Mission.Message = "START"
 	r.Mu.Unlock()
 
+	// check if already at target
+	distance := ((targetX-startX)*(targetX-startX) + (targetY-startY)*(targetY-startY))
+	if distance < 0.05 {
+		r.InfoLog.Printf("Robot already at target location (%.2f, %.2f)\n", targetX, targetY)
+		r.Mu.Lock()
+		r.State.Mission.Code = MissionSuccess
+		r.State.Mission.Message = "SUCCESS"
+		r.Mu.Unlock()
+		return
+	}
+
 	// simple simulation: move step by step
 	// assume it takes 10 seconds to reach the target
 	// update position every 0.1 second

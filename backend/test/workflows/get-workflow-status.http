@@ -1,2 +1,2 @@
-GET http://localhost:3000/api/v1/workflows/271c79b2-1dc7-4522-b8d5-472b677fc697/status
+GET http://localhost:3000/api/v1/workflows/workflow-1768893642252/status
 Content-Type: application/json

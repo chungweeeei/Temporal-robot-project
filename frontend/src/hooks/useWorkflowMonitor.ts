@@ -17,6 +17,7 @@ export function useWorkflowMonitor(workflowId: string) {
         return statusData.status;
     }, [statusData, isMonitoring]);
 
+    const currentNode = statusData?.current_node || null;
     const currentStep = statusData?.current_step || null;
 
     // Effect: Auto-stop monitoring (Global)
@@ -48,6 +49,7 @@ export function useWorkflowMonitor(workflowId: string) {
       isMonitoring,
       setIsMonitoring: setMonitoring,
       workflowStatus,
+      currentNode,
       currentStep
     };
 }

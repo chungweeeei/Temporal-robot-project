@@ -38,8 +38,6 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 	var cancelCurrentActivity func()
 	signalChan := workflow.GetSignalChannel(ctx, "control-signal")
 
-	currentStep := "Initializing"
-
 	// Background listener for control signal
 	workflow.Go(ctx, func(ctx workflow.Context) {
 		workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
@@ -59,14 +57,22 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		}
 	})
 
-	workflow.SetQueryHandler(ctx, "get_step", func() (string, error) {
+	currentNodeID := payload.RootNodeID
+	currentStep := "Initializing"
+
+	workflow.SetQueryHandler(ctx, "get_step", func() (map[string]interface{}, error) {
 		if pause {
-			return "Paused", nil
+			return map[string]interface{}{
+				"nodeId": currentNodeID,
+				"step":   "Paused",
+			}, nil
 		}
-		return currentStep, nil
+		return map[string]interface{}{
+			"nodeId": currentNodeID,
+			"step":   currentStep,
+		}, nil
 	})
 
-	currentNodeID := payload.RootNodeID
 	for {
 		// 使用 workflow.Await 來等待 paused 狀態解除
 		// 這裡會阻塞直到匿名函數返回 true (即 !paused)

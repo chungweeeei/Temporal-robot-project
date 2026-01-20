@@ -195,7 +195,7 @@ func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 	systemStatus := descResp.WorkflowExecutionInfo.Status
 
 	var status string = ""
-	var currentStep string
+	var currentStep map[string]interface{}
 	// 2. Map system status to our API status
 	switch systemStatus {
 	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
@@ -206,7 +206,7 @@ func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 		if err == nil {
 			if err := queryResp.Get(&currentStep); err == nil {
 				// If the internal logic says "Paused", we can override the status or just pass it as step
-				if currentStep == "Paused" {
+				if currentStep["step"] == "Paused" {
 					status = "Paused"
 				}
 			}
@@ -225,7 +225,8 @@ func (h *Handler) GetWorkflowStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":       status,
-		"current_step": currentStep,
+		"current_node": currentStep["nodeId"],
+		"current_step": currentStep["step"],
 	})
 }
 
