@@ -11,6 +11,7 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -18,6 +19,14 @@ type SaveWorkflowRequest struct {
 	WorkflowID   string                 `json:"workflow_id" binding:"required"`
 	WorkflowName string                 `json:"workflow_name" binding:"required"`
 	Nodes        map[string]interface{} `json:"nodes"`
+}
+
+type WorkflowRecord struct {
+	WorkflowID string `json:"workflow_id"`
+	RunID      string `json:"run_id"`
+	Status     string `json:"status"`
+	StartTime  string `json:"start_time"`
+	EndTime    string `json:"end_time"`
 }
 
 func (h *Handler) SaveWorkflow(c *gin.Context) {
@@ -249,4 +258,33 @@ func (h *Handler) DeleteWorkflow(c *gin.Context) {
 		"message":     "Workflow deleted successfully",
 		"workflow_id": workflowId,
 	})
+}
+
+func (h *Handler) GetWorkflowRecords(c *gin.Context) {
+
+	request := &workflowservice.ListWorkflowExecutionsRequest{
+		PageSize: 5,
+	}
+
+	resp, err := h.App.TemporalClient.ListWorkflow(context.Background(), request)
+	if err != nil {
+		h.App.ErrorLog.Println("Unable to list workflow executions:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to list workflow executions"})
+		return
+	}
+
+	var records []WorkflowRecord
+	for _, execution := range resp.Executions {
+		record := WorkflowRecord{
+			WorkflowID: execution.Execution.WorkflowId,
+			RunID:      execution.Execution.RunId,
+			Status:     execution.Status.String(),
+			StartTime:  execution.StartTime.AsTime().String(),
+			EndTime:    execution.CloseTime.AsTime().String(),
+		}
+
+		records = append(records, record)
+	}
+
+	c.JSON(http.StatusOK, records)
 }

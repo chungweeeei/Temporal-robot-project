@@ -69,7 +69,7 @@ export default function NodeEditorModal({ isOpen, node, onClose, onSave, onDelet
           <input
             name={key}
             type="number"
-            step="any"
+            step={property.step ?? "any"}
             value={value}
             onChange={(e) => handleChange(key, e.target.value, property.type)}
             required={isRequired}

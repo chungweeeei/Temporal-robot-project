@@ -10,7 +10,6 @@ export type SaveWorkflowPayload = {
 }
 
 async function saveWorkflow(payload: SaveWorkflowPayload){
-    console.log(payload);
     const response = await axios.post(
         "http://localhost:3000/api/v1/workflows",
         {

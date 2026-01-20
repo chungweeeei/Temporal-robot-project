@@ -19,7 +19,6 @@ import { useTriggerWorkflow, usePauseWorkflow, useResumeWorkflow } from '@/hooks
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Plus, Pause, Play, Pencil } from 'lucide-react';
 import type { ActivityDefinition } from '@/types/activities';
-import { AIGenerateFlowModal } from '@/components/dashboard/GenerateFlowModal';
 
 // --- Register Custom Nodes ---
 const nodeTypes = {
@@ -167,7 +166,6 @@ export default function Editor() {
     if (!workflowId) return;
     triggerMutation.mutate(workflowId, {
       onSuccess: () => {
-        console.log("Workflow triggered successfully.");
         setIsMonitoring(true);
       },
       onError: (error) => {
@@ -315,7 +313,6 @@ export default function Editor() {
             {/* Save - 只在編輯模式顯示 */}
             {isEditing && (
               <>
-                <AIGenerateFlowModal />
                 <Button
                   variant="outline"
                   size="sm"

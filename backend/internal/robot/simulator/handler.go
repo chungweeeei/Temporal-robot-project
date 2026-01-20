@@ -115,6 +115,9 @@ func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.Serv
 		}
 	}
 
+	// mock 2 seconds delay for motion control execution
+	time.Sleep(2 * time.Second)
+
 	respData := BaseResponse{
 		ApiID: RobotMotionControlID,
 		Status: StatusDetail{
@@ -164,6 +167,9 @@ func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.Service
 		}
 	}
 
+	// mock 2 seconds delay for motion control execution
+	time.Sleep(2 * time.Second)
+
 	respData := BaseResponse{
 		ApiID: RobotTTSCommandID,
 		Status: StatusDetail{
@@ -186,7 +192,7 @@ func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.Service
 func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.ServiceResponse {
 
 	// mock dealing with head angle setting
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	respData := StatusDetail{
 		Code:    SUCCESS,

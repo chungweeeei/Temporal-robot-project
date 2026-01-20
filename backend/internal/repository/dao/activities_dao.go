@@ -42,9 +42,9 @@ func getActivitySeeds() []models.ActivityDefinition {
 	moveSchema := map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
-			"x":           map[string]interface{}{"type": "number", "title": "X (m)", "default": 0.0},
-			"y":           map[string]interface{}{"type": "number", "title": "Y (m)", "default": 0.0},
-			"orientation": map[string]interface{}{"type": "number", "title": "Orientation (Degree)", "default": 0.0},
+			"x":           map[string]interface{}{"type": "number", "title": "X (m)", "step": 0.1, "default": 0.0},
+			"y":           map[string]interface{}{"type": "number", "title": "Y (m)", "step": 0.1, "default": 0.0},
+			"orientation": map[string]interface{}{"type": "number", "title": "Orientation (Degree)", "step": 0.1, "default": 0.0},
 		},
 		"required": []string{"x", "y"},
 	}

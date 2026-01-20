@@ -48,4 +48,19 @@ export interface WorkflowStatus {
     current_step: string;
 }
 
+export interface WorkflowExecution {
+  runId: string;
+  workflowId: string;
+  workflowName: string;
+  status: WorkflowStatusDef;
+  startTime: string;
+  endTime?: string;
+}
 
+export interface WorkflowRecord {
+  workflow_id: string;
+  run_id: string;
+  status: WorkflowStatusDef;
+  start_time: string;
+  end_time?: string;
+}

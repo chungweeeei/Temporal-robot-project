@@ -2,6 +2,7 @@ export interface SchemaProperty {
     type: 'string' | 'number' | 'boolean' | 'object' | 'array';
     title?: string;
     default?: any;
+    step?: number;
 }
 
 export interface InputSchema {

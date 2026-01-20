@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/utils/http";
 
 async function triggerWorkflow(workflowId: string){
 
@@ -61,6 +62,10 @@ async function resumeWorkflow(workflowId: string){
 export const useTriggerWorkflow = () => {
     return useMutation({
         mutationFn: (workflowId: string) => triggerWorkflow(workflowId),
+        onSuccess: async () => {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            queryClient.invalidateQueries({ queryKey: ['workflows', 'records'] });
+        }
     });
 }
 
