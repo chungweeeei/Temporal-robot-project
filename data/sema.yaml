@@ -1,0 +1,179 @@
+initial_pose:
+  x: 19.48
+  y: 14.68
+  orientation: 271.21
+landmarks:
+  - name: Default
+    type: 1
+    locate:
+      x: 19.65
+      y: 14.74
+      orientation: 275.83
+  - name: 1
+    type: 0
+    locate:
+      x: 3.53
+      y: 16.62
+      orientation: 253.21
+  - name: 2
+    type: 0
+    locate:
+      x: 2.96
+      y: -3.87
+      orientation: 340.02
+  - name: out
+    type: 0
+    locate:
+      x: -9.30
+      y: 23.80
+      orientation: 0.00
+  - name: in
+    type: 0
+    locate:
+      x: -9.40
+      y: 21.00
+      orientation: 0.00
+  - name: 3
+    type: 0
+    locate:
+      x: -0.27
+      y: 0.53
+      orientation: 176.31
+  - name: 4
+    type: 0
+    locate:
+      x: -3.90
+      y: -2.60
+      orientation: 0.00
+  - name: 5
+    type: 0
+    locate:
+      x: -5.60
+      y: 4.00
+      orientation: 0.00
+  - name: 6
+    type: 0
+    locate:
+      x: -5.30
+      y: 11.70
+      orientation: 0.00
+  - name: 7
+    type: 0
+    locate:
+      x: 3.27
+      y: 10.15
+      orientation: 0.00
+  - name: 8
+    type: 0
+    locate:
+      x: 9.27
+      y: 3.55
+      orientation: 0.00
+  - name: 9
+    type: 0
+    locate:
+      x: 10.37
+      y: -3.50
+      orientation: 0.00
+  - name: 10
+    type: 0
+    locate:
+      x: 5.11
+      y: 24.49
+      orientation: 359.55
+  - name: 11
+    type: 0
+    locate:
+      x: -1.25
+      y: -0.14
+      orientation: 10.31
+  - name: 22
+    type: 0
+    locate:
+      x: 0.99
+      y: 0.37
+      orientation: 21.49
+  - name: sentry
+    type: 0
+    locate:
+      x: 0.04
+      y: -0.22
+      orientation: 325.53
+  - name: 居里夫人
+    type: 0
+    locate:
+      x: 4.30
+      y: -4.50
+      orientation: 0.00
+  - name: 宋應星
+    type: 0
+    locate:
+      x: 0.28
+      y: -4.50
+      orientation: 0.00
+  - name: 張衡
+    type: 0
+    locate:
+      x: -1.77
+      y: -4.50
+      orientation: 0.00
+  - name: 徐光啟
+    type: 0
+    locate:
+      x: -6.02
+      y: -2.65
+      orientation: 0.00
+  - name: 法拉第
+    type: 0
+    locate:
+      x: -6.02
+      y: -1.20
+      orientation: 0.00
+  - name: 會議室
+    type: 0
+    locate:
+      x: -6.02
+      y: 5.90
+      orientation: 0.00
+  - name: 傑克基爾比
+    type: 0
+    locate:
+      x: -6.02
+      y: 7.80
+      orientation: 0.00
+  - name: 約翰巴丁
+    type: 0
+    locate:
+      x: -0.67
+      y: 11.10
+      orientation: 0.00
+  - name: 瓦特
+    type: 0
+    locate:
+      x: 1.30
+      y: 10.15
+      orientation: 0.00
+  - name: 古騰堡
+    type: 0
+    locate:
+      x: 8.50
+      y: 3.35
+      orientation: 0.00
+  - name: 巴斯德
+    type: 0
+    locate:
+      x: 9.43
+      y: 1.50
+      orientation: 0.00
+  - name: DEMO ROOM
+    type: 0
+    locate:
+      x: 3.48
+      y: -3.55
+      orientation: 0.00
+  - name: elevator
+    type: 0
+    locate:
+      x: -2.67
+      y: 29.45
+      orientation: 359.15

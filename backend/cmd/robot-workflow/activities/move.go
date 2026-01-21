@@ -12,6 +12,22 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
+func (ra *RobotActivities) sendStopCommand() {
+
+	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	stopData := map[string]interface{}{
+		"api_id": RobotStopActionID,
+	}
+	stopBytes, _ := json.Marshal(stopData)
+
+	_, err := ra.Client.CallService(stopCtx, "Stop", string(stopBytes))
+	if err != nil {
+		color.Red("Failed to send stop command", "error", err)
+	}
+}
+
 func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface{}) (string, error) {
 
 	logger := activity.GetLogger(ctx)
@@ -57,32 +73,20 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 	for {
 		select {
 		case <-ctx.Done():
-			color.Red("Move activity cancelled, stopping robot monitoring")
-
-			// 1. 建立一個不依賴原本 ctx 的新 context (避免因為 cancelled 而發送失敗)
-			stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			// 2. 準備 Stop Command 的 Payload
-			stopData := map[string]interface{}{
-				"api_id":     RobotStopActionID, // 使用 configs.go 中定義的 ID (5000)
-				"mission_id": uuid.New().String(),
-			}
-			stopBytes, _ := json.Marshal(stopData)
-
-			// 3. 發送 Stop 指令
-			// 注意：這裡使用 stopCtx 而不是原本的 ctx
-			_, err := ra.Client.CallService(stopCtx, "Stop", string(stopBytes))
-			if err != nil {
-				logger.Error("Failed to send stop command during cancellation", "error", err)
-			} else {
-				logger.Info("Stop command sent successfully")
-			}
-
+			logger.Info("Move activity cancelled, stopping robot.")
+			ra.sendStopCommand()
 			return "", ctx.Err()
+
 		case <-ticker.C:
 			status, err := ra.GetStatus(ctx)
+
 			if err != nil {
+				// instantly check context error
+				if ctx.Err() != nil {
+					logger.Info("Move activity cancelled (from GetStatus error).")
+					ra.sendStopCommand()
+					return "", ctx.Err()
+				}
 				logger.Error("Failed to get robot status during move", "error", err)
 				continue
 			}

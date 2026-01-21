@@ -40,10 +40,11 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 
 	// Background listener for control signal
 	workflow.Go(ctx, func(ctx workflow.Context) {
+		workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
 		for {
 			var signal string
 			signalChan.Receive(ctx, &signal)
-			logger.Info("Received control signal", "signal", signal)
+			logger.Info("Received control signal", "workflowID", workflowID, "signal", signal)
 			switch signal {
 			case "pause":
 				pause = true
@@ -56,12 +57,22 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		}
 	})
 
+	currentNodeID := payload.RootNodeID
 	currentStep := "Initializing"
-	workflow.SetQueryHandler(ctx, "get_step", func() (string, error) {
-		return currentStep, nil
+
+	workflow.SetQueryHandler(ctx, "get_step", func() (map[string]interface{}, error) {
+		if pause {
+			return map[string]interface{}{
+				"nodeId": currentNodeID,
+				"step":   "Paused",
+			}, nil
+		}
+		return map[string]interface{}{
+			"nodeId": currentNodeID,
+			"step":   currentStep,
+		}, nil
 	})
 
-	currentNodeID := payload.RootNodeID
 	for {
 		// 使用 workflow.Await 來等待 paused 狀態解除
 		// 這裡會阻塞直到匿名函數返回 true (即 !paused)
@@ -83,14 +94,16 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 		case pkg.ActivityStandUp, pkg.ActivitySitDown, pkg.ActivityHead, pkg.ActivityMove, pkg.ActivityTTS:
 			// Execute robot activity
 			var result string
-			err := workflow.ExecuteActivity(childCtx, string(currentNode.Type), currentNode.Params).Get(ctx, &result)
+			err := workflow.ExecuteActivity(childCtx, string(currentNode.Type), currentNode.Params).Get(childCtx, &result)
 
 			// clean up cancle function
 			cancelCurrentActivity = nil
 			cancel()
 
 			if temporal.IsCanceledError(err) {
-				logger.Info("Activity was cancelled due to pause signal", "activity", string(currentNode.Type))
+				workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
+				logger.Info("Activity was cancelled due to pause signal", "workflowID", workflowID, "activityType", string(currentNode.Type))
+				currentStep = "Paused"
 				continue
 			}
 
@@ -134,14 +147,11 @@ func RobotWorkflow(ctx workflow.Context, payload pkg.WorkflowPayload) (string, e
 			}
 			currentNodeID = currentNode.Transitions.Next
 		case pkg.ActivityEnd:
-			cancel()
 			logger.Info("Workflow reached end node")
 			return "Workflow completed successfully", nil
 		case pkg.ActivityStart:
-			cancel()
 			currentNodeID = currentNode.Transitions.Next
 		default:
-			cancel()
 			return "", fmt.Errorf("unsupported activity type: %s", currentNode.Type)
 		}
 	}

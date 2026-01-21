@@ -54,7 +54,7 @@ type RetryPolicy struct {
 }
 
 // WorkflowTransitions 定義狀態轉移
-// 對應前端: next, failure, true, false 都可能是下一個節點 ID
+// 對應前端: next, failure 都可能是下一個節點 ID
 type WorkflowTransitions struct {
 	Next    string `json:"next,omitempty"`
 	Failure string `json:"failure,omitempty"`

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 )
 
@@ -46,7 +45,6 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 		return "", err
 	}
 
-	color.Cyan("Sending Message", "payload", string(payload))
 	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
 		return "", fmt.Errorf("write failed: %v", err)
 	}
@@ -59,7 +57,6 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 
 	go func() {
 		_, msg, err := conn.ReadMessage()
-		color.Cyan("Received Message", "msg", string(msg))
 		resultCh <- readResult{data: msg, err: err}
 	}()
 
@@ -70,7 +67,6 @@ func (r *RobotClient) CallService(ctx context.Context, actionType string, data a
 		}
 		return parseResponse(res.data)
 	case <-ctx.Done():
-		fmt.Println("Context done, cancelling read")
 		return "", ctx.Err()
 	}
 }
