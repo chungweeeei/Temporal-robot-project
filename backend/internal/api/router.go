@@ -3,8 +3,8 @@ package api
 import (
 	"time"
 
-	"github.com/chungweeeei/Temporal-robot-project/internal/api/handlers"
-	"github.com/chungweeeei/Temporal-robot-project/internal/config"
+	api "github.com/chungweeeei/Temporal-robot-project/internal/api/handlers"
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/api"
 	"github.com/chungweeeei/Temporal-robot-project/internal/repository/dao"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -23,7 +23,7 @@ func NewRouter(app *config.AppConfig) *gin.Engine {
 		MaxAge:           6 * time.Hour,
 	}))
 
-	h := handlers.NewHandler(app, dao.NewWorkflowDAO(app.DB))
+	h := api.NewHandler(app, dao.NewWorkflowDAO(app.DB))
 
 	apiV1 := router.Group("/api/v1")
 	{

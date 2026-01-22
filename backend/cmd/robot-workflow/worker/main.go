@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
-	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/helper"
 	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gorilla/websocket"
@@ -99,7 +98,7 @@ type RawRobotStatus struct {
 func subscribeLoop(
 	ctx context.Context,
 	wsURL string,
-	cache *activities.StatusCache,
+	cache *activities.CacheStatus,
 ) error {
 
 	// Regsiter another websocket session

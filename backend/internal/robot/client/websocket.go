@@ -83,13 +83,12 @@ func (h *RobotHandler) HandleWS(w http.ResponseWriter, r *http.Request) {
 		// Step two: Handle based on Op type
 		switch header.Op {
 		case "call_service":
-			var request pkg.ServiceRequest
+			var request pkg.RobotServiceRequest
 			if err := json.Unmarshal(message, &request); err != nil {
 				continue
 			}
 
-			// 每個 Request 獨立處理，避免阻塞讀取迴圈
-			go func(req pkg.ServiceRequest) {
+			go func(req pkg.RobotServiceRequest) {
 				response := h.bot.HandleRequest(req)
 
 				if err := safeConn.WriteJSON(response); err != nil {
@@ -97,7 +96,7 @@ func (h *RobotHandler) HandleWS(w http.ResponseWriter, r *http.Request) {
 				}
 			}(request)
 		case "subscribe":
-			var request pkg.TopicRequest
+			var request pkg.RobotTopicRequest
 			if err := json.Unmarshal(message, &request); err != nil {
 				continue
 			}
@@ -137,7 +136,7 @@ func (h *RobotHandler) RobotStatusBroadcaster(conn *SafeConn, done <-chan struct
 		case <-ticker.C:
 			status := h.bot.GetRobotStatus()
 			if err := conn.WriteJSON(status); err != nil {
-				log.Println("Broadcase error", err)
+				log.Println("Broadcast error", err)
 				return
 			}
 		}

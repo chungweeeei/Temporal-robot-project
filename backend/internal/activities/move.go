@@ -18,7 +18,7 @@ func (ra *RobotActivities) sendStopCommand() {
 	defer cancel()
 
 	stopData := map[string]interface{}{
-		"api_id": RobotStopActionID,
+		"api_id": config.RobotStopActionID,
 	}
 	stopBytes, _ := json.Marshal(stopData)
 
@@ -44,7 +44,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 	newMissionID := uuid.New().String()
 	_, err := executeWithHeartbeat(ctx, func() (string, error) {
 		data := map[string]interface{}{
-			"api_id":      RobotMoveCommandID,
+			"api_id":      config.RobotMoveCommandID,
 			"mission_id":  newMissionID,
 			"x":           targetX,
 			"y":           targetY,
@@ -96,7 +96,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 				continue
 			}
 
-			if status.Mission.Code == MissionSuccess {
+			if status.Mission.Code == config.MissionSuccess {
 				return fmt.Sprintf("Robot has reached the target location (%.2f, %.2f)", status.Pose.Position.X, status.Pose.Position.Y), nil
 			}
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("Robot currently at (%f, %f)", status.Pose.Position.X, status.Pose.Position.Y))

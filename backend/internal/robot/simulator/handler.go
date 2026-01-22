@@ -8,7 +8,7 @@ import (
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 )
 
-func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceResponse {
+func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.RobotServiceResponse {
 
 	var moveArgs struct {
 		ApiID       int     `json:"api_id"`
@@ -28,7 +28,7 @@ func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceRe
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return pkg.ServiceResponse{
+		return pkg.RobotServiceResponse{
 			Op:      "service_response",
 			Service: service,
 			Values: struct {
@@ -51,7 +51,7 @@ func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceRe
 	}
 	bytes, _ := json.Marshal(respData)
 
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -62,7 +62,7 @@ func (r *MockRobot) MoveToLocation(service string, request []byte) pkg.ServiceRe
 	}
 }
 
-func (r *MockRobot) HandleStopCommand(service string, request []byte) pkg.ServiceResponse {
+func (r *MockRobot) HandleStopCommand(service string, request []byte) pkg.RobotServiceResponse {
 
 	// send stop signal to robot
 	r.StopChan <- true
@@ -76,7 +76,7 @@ func (r *MockRobot) HandleStopCommand(service string, request []byte) pkg.Servic
 		},
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -87,7 +87,7 @@ func (r *MockRobot) HandleStopCommand(service string, request []byte) pkg.Servic
 	}
 }
 
-func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.ServiceResponse {
+func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.RobotServiceResponse {
 
 	var motionArgs struct {
 		ApiID  int `json:"api_id"`
@@ -104,7 +104,7 @@ func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.Serv
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return pkg.ServiceResponse{
+		return pkg.RobotServiceResponse{
 			Op:      "service_response",
 			Service: service,
 			Values: struct {
@@ -126,7 +126,7 @@ func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.Serv
 		},
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -137,7 +137,7 @@ func (r *MockRobot) HandleMotionControl(service string, request []byte) pkg.Serv
 	}
 }
 
-func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.ServiceResponse {
+func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.RobotServiceResponse {
 
 	var ttsArgs struct {
 		ApiID     int     `json:"api_id"`
@@ -156,7 +156,7 @@ func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.Service
 			},
 		}
 		bytes, _ := json.Marshal(respData)
-		return pkg.ServiceResponse{
+		return pkg.RobotServiceResponse{
 			Op:      "service_response",
 			Service: service,
 			Values: struct {
@@ -178,7 +178,7 @@ func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.Service
 		},
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -189,7 +189,7 @@ func (r *MockRobot) HandleTTSCommand(service string, request []byte) pkg.Service
 	}
 }
 
-func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.ServiceResponse {
+func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.RobotServiceResponse {
 
 	// mock dealing with head angle setting
 	time.Sleep(2 * time.Second)
@@ -199,7 +199,7 @@ func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.ServiceR
 		Message: "Set Head angle accepted",
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -210,7 +210,7 @@ func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.ServiceR
 	}
 }
 
-func (r *MockRobot) HandleUnknownRequest(unknownId int, service string) pkg.ServiceResponse {
+func (r *MockRobot) HandleUnknownRequest(unknownId int, service string) pkg.RobotServiceResponse {
 	r.ErrorLog.Println("Received Unknown API ID:", unknownId)
 	respData := BaseResponse{
 		ApiID: unknownId,
@@ -220,7 +220,7 @@ func (r *MockRobot) HandleUnknownRequest(unknownId int, service string) pkg.Serv
 		},
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -231,7 +231,7 @@ func (r *MockRobot) HandleUnknownRequest(unknownId int, service string) pkg.Serv
 	}
 }
 
-func (r *MockRobot) HandleUnknownService(service string) pkg.ServiceResponse {
+func (r *MockRobot) HandleUnknownService(service string) pkg.RobotServiceResponse {
 	r.ErrorLog.Println("Received Unknown Service:", service)
 	respData := BaseResponse{
 		ApiID: 0,
@@ -241,7 +241,7 @@ func (r *MockRobot) HandleUnknownService(service string) pkg.ServiceResponse {
 		},
 	}
 	bytes, _ := json.Marshal(respData)
-	return pkg.ServiceResponse{
+	return pkg.RobotServiceResponse{
 		Op:      "service_response",
 		Service: service,
 		Values: struct {
@@ -252,7 +252,7 @@ func (r *MockRobot) HandleUnknownService(service string) pkg.ServiceResponse {
 	}
 }
 
-func (r *MockRobot) GetRobotStatus() pkg.TopicResponse {
+func (r *MockRobot) GetRobotStatus() pkg.RobotTopicResponse {
 
 	qx, qy, qz, qw := transferOrientationToQuaternion(r.State.Orientation)
 
@@ -313,7 +313,7 @@ func (r *MockRobot) GetRobotStatus() pkg.TopicResponse {
 	}
 
 	bytes, _ := json.Marshal(respData)
-	return pkg.TopicResponse{
+	return pkg.RobotTopicResponse{
 		Op:    "publish",
 		Topic: "/api/info",
 		Msg: struct {

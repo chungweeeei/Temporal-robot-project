@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/activity"
 )
 
 func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{}) (string, error) {
@@ -16,7 +18,7 @@ func (ra *RobotActivities) TTS(ctx context.Context, params map[string]interface{
 	return executeWithHeartbeat(ctx, func() (string, error) {
 
 		data := map[string]interface{}{
-			"api_id":     RobotTTSCommandID,
+			"api_id":     config.RobotTTSCommandID,
 			"text":       text,
 			"voice_name": "English-US.Male-1",
 		}

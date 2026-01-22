@@ -1,10 +1,11 @@
 package activities
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"time"
+
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/activity"
 )
 
 var (
@@ -12,15 +13,28 @@ var (
 	ErrStatusStale        = errors.New("robot status is stale")
 )
 
-type MissionCode int
-
-const (
-	MissionCodeInit MissionCode = iota
-	MissionCodeStart
-	MissionSuccess
-	MissionFailed
-	MissionAbort
-)
+type RawRobotStatus struct {
+	ApiID        int         `json:"api_id"`
+	BatteryLevel interface{} `json:"battery_level"` // Could be string "94" or int 94
+	Pose         struct {
+		Position struct {
+			X interface{} `json:"x"`
+			Y interface{} `json:"y"`
+			Z interface{} `json:"z"`
+		} `json:"position"`
+		Orientation struct {
+			X interface{} `json:"x"`
+			Y interface{} `json:"y"`
+			Z interface{} `json:"z"`
+			W interface{} `json:"w"`
+		} `json:"orientation"`
+	} `json:"pose"`
+	MissionID interface{} `json:"mission_id"`
+	Mission   struct {
+		Code    interface{} `json:"code"`
+		Message interface{} `json:"message"`
+	} `json:"mission"`
+}
 
 type RobotStatus struct {
 	ApiID        int `json:"api_id"`
@@ -40,24 +54,24 @@ type RobotStatus struct {
 	} `json:"pose"`
 	MissionID string `json:"mission_id"`
 	Mission   struct {
-		Code    MissionCode `json:"code"`
-		Message string      `json:"message"`
+		Code    config.MissionCode `json:"code"`
+		Message string             `json:"message"`
 	} `json:"mission"`
 }
 
-// Shared Status Cache (Backgroud goroutine updates this cache periodically)
-type StatusCache struct {
+// Status Cache (Background goroutine updates this periodically)
+type CacheStatus struct {
 	mu          sync.RWMutex
 	status      RobotStatus
 	lastUpdated time.Time
 	initialized bool
 }
 
-func NewStatusCache() *StatusCache {
-	return &StatusCache{}
+func NewCacheStatus() *CacheStatus {
+	return &CacheStatus{}
 }
 
-func (c *StatusCache) Get() (RobotStatus, error) {
+func (c *CacheStatus) Get() (RobotStatus, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -72,25 +86,17 @@ func (c *StatusCache) Get() (RobotStatus, error) {
 	return c.status, nil
 }
 
-func (c *StatusCache) Update(s RobotStatus) {
+func (c *CacheStatus) Update(status RobotStatus) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.status = s
+
+	c.status = status
 	c.lastUpdated = time.Now()
 	c.initialized = true
 }
 
-func (c *StatusCache) IsReady() bool {
+func (c *CacheStatus) IsReady() bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.initialized
-}
-
-func (ra *RobotActivities) GetStatus(ctx context.Context) (RobotStatus, error) {
-
-	if ra.StatusCache == nil {
-		return RobotStatus{}, ErrStatusNotAvailable
-	}
-
-	return ra.StatusCache.Get()
 }

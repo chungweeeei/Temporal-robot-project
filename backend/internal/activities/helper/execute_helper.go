@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	ACTIVITY_HEARTBEAT_INTERVAL = 3 // unit in seconds
+	ACTIVITY_HEARTBEAT_INTERVAL = 3
 )
 
 func generatePayload(actionType string, data any) ([]byte, error) {
 
-	var req pkg.ServiceRequest
+	var req pkg.RobotServiceRequest
 	switch actionType {
 	case "Standup", "Sitdown", "Move", "TTS", "Status", "Stop":
 		req.Op = "call_service"
@@ -46,7 +46,7 @@ func generatePayload(actionType string, data any) ([]byte, error) {
 }
 
 func parseResponse(msg []byte) (string, error) {
-	var resp pkg.ServiceResponse
+	var resp pkg.RobotServiceResponse
 	if err := json.Unmarshal(msg, &resp); err != nil {
 		return "", err
 	}
@@ -91,30 +91,3 @@ func executeWithHeartbeat[T any](ctx context.Context, operation func() (T, error
 		}
 	}
 }
-
-/*
-	Go原生select:
-  		- 使用時機: 用於標準Go程式碼中，包括main func, goroutines以及Temporal Activities．
-  		- Activity 本質上就是普通的 Go 函式，它運行在標準的 Go Runtime 上，不受 Temporal 的確定性 (Determinism) 限制。
-	workflow.Selector:
-  		- 使用時機: 只能用於 Temporal Workflow 定義中。
-  		- 原因: Workflow 必須是確定性的 (Deterministic)。Go 原生的 select 在處理多個 channel 同時有資料時，其選取順序是隨機的 (Random).
-*/
-
-/*
-錯誤範例：不能在 Workflow 裡這樣寫，因為 select 是隨機的
-select {
-case <-future1.Get(ctx, nil): // 這是 Go 原生寫法，在 Workflow 會出錯或不穩定
-case <-future2.Get(ctx, nil):
-}
-
-// 正確範例：在 Workflow 裡要用 Selector
-selector := workflow.NewSelector(ctx)
-selector.AddFuture(future1, func(f workflow.Future) {
-    // 處理 future1
-})
-selector.AddFuture(future2, func(f workflow.Future) {
-    // 處理 future2
-})
-selector.Select()
-*/

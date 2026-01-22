@@ -9,7 +9,7 @@ import (
 )
 
 // Handle Request
-func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceResponse {
+func (r *MockRobot) HandleRequest(request pkg.RobotServiceRequest) pkg.RobotServiceResponse {
 
 	r.InfoLog.Printf("[%s] Receive Service Request: %s\n", time.Now(), request)
 
@@ -19,7 +19,7 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 		requestDataStr, ok := request.Args.Data.(string)
 		if !ok {
 			r.ErrorLog.Println("Invalid request data format")
-			return pkg.ServiceResponse{
+			return pkg.RobotServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {
@@ -44,7 +44,7 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 				},
 			}
 			bytes, _ := json.Marshal(respData)
-			return pkg.ServiceResponse{
+			return pkg.RobotServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {
@@ -73,7 +73,7 @@ func (r *MockRobot) HandleRequest(request pkg.ServiceRequest) pkg.ServiceRespons
 		requestAngle, ok := request.Args.Data.(float64)
 		if !ok {
 			r.ErrorLog.Println("Invalid request data format")
-			return pkg.ServiceResponse{
+			return pkg.RobotServiceResponse{
 				Op:      "service_response",
 				Service: request.Service,
 				Values: struct {

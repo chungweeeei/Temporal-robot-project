@@ -1,7 +1,7 @@
-package handlers
+package api
 
 import (
-	"github.com/chungweeeei/Temporal-robot-project/internal/config"
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/api"
 	"github.com/chungweeeei/Temporal-robot-project/internal/repository/dao"
 )
 
