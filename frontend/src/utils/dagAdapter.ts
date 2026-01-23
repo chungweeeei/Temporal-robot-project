@@ -1,20 +1,18 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { WorkflowPayload, WorkflowNode, FlowNodeData } from '../types/schema';
+import type { NodeInfo, BaseParams, ActivityType} from '../types/workflows';
+import type { ActivityDefinition } from '../types/activities';
 
 export const transformToDagPayload = (
-  workflowId: string,
-  workflowName: string,
   nodes: Node[],
   edges: Edge[]
-): WorkflowPayload => {
-  const payloadNodes: Record<string, WorkflowNode> = {};
-
+): Record<string, NodeInfo> => {
+  const payloadNodes: Record<string, NodeInfo> = {};
   // 1. 初始化所有節點
   nodes.forEach((node) => {
     payloadNodes[node.id] = {
       id: node.id,
-      type: (node.data as FlowNodeData).activityType,
-      params: (node.data as FlowNodeData).params,
+      type: node.data.activityType as ActivityType,
+      params: node.data.params as BaseParams,
       transitions: {},
     };
   });
@@ -39,18 +37,19 @@ export const transformToDagPayload = (
     }
   });
   
-  return {
-    workflow_id: workflowId,
-    workflow_name: workflowName,
-    root_node_id: "start",
-    nodes: payloadNodes,
-  };
+  return payloadNodes;
 };
 
 
 export const transformBackToReactFlow = (
-  backendNodes: Record<string, WorkflowNode>
+  backendNodes: Record<string, NodeInfo>,
+  activitiesDef?: ActivityDefinition[]
 ): { nodes: Node[]; edges: Edge[] } => {
+
+  // 建立 activityType -> inputSchema 的映射表
+  const schemaMap = new Map(
+    activitiesDef?.map((def) => [def.activity_type, def.input_schema]) ?? []
+  );
 
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -98,6 +97,7 @@ export const transformBackToReactFlow = (
       data: {
         label: node.type,
         activityType: node.type,
+        inputSchema: schemaMap.get(node.type) ?? null,
         params: node.params || {},
       }
     };

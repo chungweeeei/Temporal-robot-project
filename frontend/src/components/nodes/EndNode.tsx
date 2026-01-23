@@ -1,9 +1,8 @@
-import React from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { FlowNodeData } from '../../types/schema';
 
 export default function EndNode({ data }: NodeProps) {
-  const { label } = data as FlowNodeData;
+  const label = data.label as string;
+  
   return (
     <div className="flex flex-col items-center justify-center">
       {/* Input Handle */}

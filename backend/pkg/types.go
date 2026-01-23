@@ -1,6 +1,6 @@
 package pkg
 
-type ServiceRequest struct {
+type RobotServiceRequest struct {
 	Op      string `json:"op"`
 	Service string `json:"service"`
 	Type    string `json:"type"`
@@ -9,7 +9,7 @@ type ServiceRequest struct {
 	} `json:"args"`
 }
 
-type ServiceResponse struct {
+type RobotServiceResponse struct {
 	Op      string `json:"op"`
 	Service string `json:"service"`
 	Values  struct {
@@ -17,7 +17,7 @@ type ServiceResponse struct {
 	} `json:"values"`
 }
 
-type TopicRequest struct {
+type RobotTopicRequest struct {
 	Op           string `json:"op"`
 	Topic        string `json:"topic"`
 	Type         string `json:"type"`
@@ -25,7 +25,7 @@ type TopicRequest struct {
 	QueueLength  int    `json:"queue_length"`
 }
 
-type TopicResponse struct {
+type RobotTopicResponse struct {
 	Op    string `json:"op"`
 	Topic string `json:"topic"`
 	Msg   struct {
@@ -46,15 +46,6 @@ const (
 	ActivityEnd     ActivityType = "End"
 )
 
-type RetryPolicy struct {
-	MaxAttempts        int32   `json:"maxAttempts"`
-	InitialInterval    int32   `json:"initialInterval"` // ms
-	BackoffCoefficient float64 `json:"backoffCoefficient,omitempty"`
-	MaximumInterval    int32   `json:"maximumInterval,omitempty"` // ms
-}
-
-// WorkflowTransitions 定義狀態轉移
-// 對應前端: next, failure, true, false 都可能是下一個節點 ID
 type WorkflowTransitions struct {
 	Next    string `json:"next,omitempty"`
 	Failure string `json:"failure,omitempty"`
@@ -64,7 +55,6 @@ type WorkflowNode struct {
 	ID          string                 `json:"id"`
 	Type        ActivityType           `json:"type"`
 	Params      map[string]interface{} `json:"params"`
-	RetryPolicy *RetryPolicy           `json:"retryPolicy,omitempty"`
 	Transitions WorkflowTransitions    `json:"transitions"`
 }
 

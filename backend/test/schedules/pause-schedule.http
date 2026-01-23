@@ -1,0 +1,2 @@
+POST http://localhost:3000/api/v1/schedules/schedule-1768879132132/pause
+Content-Type: application/json

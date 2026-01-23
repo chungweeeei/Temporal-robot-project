@@ -1,0 +1,2 @@
+DELETE http://localhost:3000/api/v1/workflows/workflow-1768810599243
+Content-Type: application/json
