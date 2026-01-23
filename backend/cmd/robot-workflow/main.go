@@ -8,9 +8,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/activities"
-	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
+	"github.com/chungweeeei/Temporal-robot-project/internal/activity"
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/activity"
+	"github.com/chungweeeei/Temporal-robot-project/internal/workflow"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
+	"github.com/chungweeeei/Temporal-robot-project/utils"
 	"github.com/gorilla/websocket"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	// Register StatusCache instance
-	statusCache := &activities.StatusCache{}
+	statusCache := &activity.CacheStatus{}
 
 	// Background go routine for robot status subscription
 	ctx, cancel := context.WithCancel(context.Background())
@@ -44,8 +46,8 @@ func main() {
 	// Register temporal worker
 	w := worker.New(c, "ROBOT_TASK_QUEUE", worker.Options{})
 
-	activities := activities.NewRobotActivities(robotIP, statusCache)
-	w.RegisterWorkflow(workflows.RobotWorkflow)
+	activities := activity.NewRobotActivities(robotIP, statusCache)
+	w.RegisterWorkflow(workflow.RobotWorkflow)
 	w.RegisterActivity(activities)
 
 	err = w.Run(worker.InterruptCh())
@@ -57,7 +59,7 @@ func main() {
 func RobotStatusSubscriber(
 	ctx context.Context,
 	wsURL string,
-	cache *activities.StatusCache,
+	cache *activity.CacheStatus,
 ) {
 	for {
 		select {
@@ -98,7 +100,7 @@ type RawRobotStatus struct {
 func subscribeLoop(
 	ctx context.Context,
 	wsURL string,
-	cache *activities.CacheStatus,
+	cache *activity.CacheStatus,
 ) error {
 
 	// Regsiter another websocket session
@@ -131,7 +133,7 @@ func subscribeLoop(
 				return err
 			}
 
-			var msg pkg.TopicResponse
+			var msg pkg.RobotTopicResponse
 			if err := json.Unmarshal(message, &msg); err != nil {
 				continue
 			}
@@ -149,21 +151,20 @@ func subscribeLoop(
 				continue
 			}
 
-			status := activities.RobotStatus{
+			status := activity.RobotStatus{
 				ApiID:        resp.DeviceStatus.ApiID,
-				BatteryLevel: helper.ToInt(resp.DeviceStatus.BatteryLevel),
+				BatteryLevel: utils.ToInt(resp.DeviceStatus.BatteryLevel),
 			}
-			status.Pose.Position.X = helper.ToFloat(resp.DeviceStatus.Pose.Position.X)
-			status.Pose.Position.Y = helper.ToFloat(resp.DeviceStatus.Pose.Position.Y)
-			status.Pose.Position.Z = helper.ToFloat(resp.DeviceStatus.Pose.Position.Z)
-
-			status.Pose.Orientation.X = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.X)
-			status.Pose.Orientation.Y = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Y)
-			status.Pose.Orientation.Z = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.Z)
-			status.Pose.Orientation.W = helper.ToFloat(resp.DeviceStatus.Pose.Orientation.W)
+			status.Pose.Position.X = utils.ToFloat(resp.DeviceStatus.Pose.Position.X)
+			status.Pose.Position.Y = utils.ToFloat(resp.DeviceStatus.Pose.Position.Y)
+			status.Pose.Position.Z = utils.ToFloat(resp.DeviceStatus.Pose.Position.Z)
+			status.Pose.Orientation.X = utils.ToFloat(resp.DeviceStatus.Pose.Orientation.X)
+			status.Pose.Orientation.Y = utils.ToFloat(resp.DeviceStatus.Pose.Orientation.Y)
+			status.Pose.Orientation.Z = utils.ToFloat(resp.DeviceStatus.Pose.Orientation.Z)
+			status.Pose.Orientation.W = utils.ToFloat(resp.DeviceStatus.Pose.Orientation.W)
 
 			status.MissionID = resp.DeviceStatus.MissionID.(string)
-			status.Mission.Code = activities.MissionCode(helper.ToInt(resp.DeviceStatus.Mission.Code))
+			status.Mission.Code = config.MissionCode(utils.ToInt(resp.DeviceStatus.Mission.Code))
 			status.Mission.Message = resp.DeviceStatus.Mission.Message.(string)
 
 			// Update cache value

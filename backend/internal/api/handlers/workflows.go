@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
 	"github.com/chungweeeei/Temporal-robot-project/internal/repository/models"
+	"github.com/chungweeeei/Temporal-robot-project/internal/workflow"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"go.temporal.io/api/enums/v1"
@@ -101,7 +101,7 @@ func (h *Handler) TriggerWorkflow(c *gin.Context) {
 		TaskQueue: "ROBOT_TASK_QUEUE",
 	}
 
-	we, err := h.App.TemporalClient.ExecuteWorkflow(context.Background(), workflowOptions, workflows.RobotWorkflow, payload)
+	we, err := h.App.TemporalClient.ExecuteWorkflow(context.Background(), workflowOptions, workflow.RobotWorkflow, payload)
 	if err != nil {
 		h.App.ErrorLog.Println("Unable to start workflow:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to start workflow"})

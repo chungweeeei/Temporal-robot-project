@@ -1,5 +1,5 @@
 export type ActivityType = "Standup" | "Standdown" | "Sitdown" | "Move" | "Sleep" | "Start" | "End" | "TTS" | "Head";
-export type WorkflowStatusDef = "Idle" | "Running" | "Completed" | "Failed" | "Paused" | "Cancelled" | "Terminated";
+export type WorkflowStatusDef = "Idle" | "Running" | "Completed" | "Failed" | "Paused" | "Canceled" | "Terminated";
 
 export interface BaseParams {
   [key: string]: string | number | boolean;

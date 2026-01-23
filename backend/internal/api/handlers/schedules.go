@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/chungweeeei/Temporal-robot-project/cmd/robot-workflow/workflows"
+	"github.com/chungweeeei/Temporal-robot-project/internal/workflow"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gin-gonic/gin"
 	"go.temporal.io/api/enums/v1"
@@ -132,7 +132,7 @@ func (h *Handler) CreateSchedule(c *gin.Context) {
 			// ID: 當schedule啟動workflow時產生的workflowID, ex: test-workflow2-schedule-001-2026-01-20T02:06:33Z
 			ID: req.ScheduleID,
 			// 註冊在 Temporal server 的 Workflow 名稱
-			Workflow: workflows.RobotWorkflow,
+			Workflow: workflow.RobotWorkflow,
 			// 如果 TaskQueue 也是存在 DB，可以用 record.TaskQueue，否則這裡是寫死的
 			TaskQueue: "ROBOT_TASK_QUEUE",
 			Args: []interface{}{pkg.WorkflowPayload{

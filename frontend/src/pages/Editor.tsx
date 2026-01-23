@@ -78,7 +78,6 @@ export default function Editor() {
 
   // --- Workflow 執行狀態監控 ---
   const { setIsMonitoring, workflowStatus, currentNode, currentStep } = useWorkflowMonitor(workflowId!);
-
   // 當 workflow 開始執行時，自動切換到執行模式
   useEffect(() => {
     if (workflowStatus === 'Running' || workflowStatus === 'Paused') {

@@ -14,16 +14,3 @@ func transferOrientationToQuaternion(orientation float64) (qx, qy, qz, qw float6
 
 	return qx, qy, qz, qw
 }
-
-func transferQuaternionToOrientation(qx, qy, qz, qw float64) float64 {
-	// Assuming rotation around Z-axis only
-	// Extract Yaw (Z-axis rotation) from quaternion
-	// formula: yaw = atan2(2(wz + xy), 1 - 2(y^2 + z^2))
-	// simpler for pure Z rotation: 2 * atan2(z, w)
-	radians := 2 * math.Atan2(qz, qw)
-
-	// Convert radians back to degrees
-	degrees := radians * (180.0 / math.Pi)
-
-	return degrees
-}

@@ -1,4 +1,4 @@
-package activities
+package activity
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"math"
 	"time"
 
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/activity"
 	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"go.temporal.io/sdk/activity"
@@ -18,7 +19,7 @@ func (ra *RobotActivities) sendStopCommand() {
 	defer cancel()
 
 	stopData := map[string]interface{}{
-		"api_id": config.RobotStopActionID,
+		"api_id": 5000,
 	}
 	stopBytes, _ := json.Marshal(stopData)
 
@@ -78,7 +79,7 @@ func (ra *RobotActivities) Move(ctx context.Context, params map[string]interface
 			return "", ctx.Err()
 
 		case <-ticker.C:
-			status, err := ra.GetStatus(ctx)
+			status, _ := ra.CacheStatus.Get()
 
 			if err != nil {
 				// instantly check context error

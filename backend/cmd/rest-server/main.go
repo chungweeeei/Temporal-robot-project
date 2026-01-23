@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"github.com/chungweeeei/Temporal-robot-project/internal/api"
-	"github.com/chungweeeei/Temporal-robot-project/internal/config"
+	config "github.com/chungweeeei/Temporal-robot-project/internal/config/api"
 	"github.com/chungweeeei/Temporal-robot-project/internal/database"
 	"go.temporal.io/sdk/client"
 )

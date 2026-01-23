@@ -1,10 +1,10 @@
-package activities
+package activity
 
 import (
 	"context"
 	"fmt"
 
-	transport "github.com/chungweeeei/Temporal-robot-project/internal/transport/websocket"
+	transport "github.com/chungweeeei/Temporal-robot-project/internal/activity/transport/websocket"
 	"github.com/chungweeeei/Temporal-robot-project/pkg"
 	"github.com/gorilla/websocket"
 )
@@ -35,7 +35,7 @@ func (r *RobotClient) CallService(ctx context.Context, actionType pkg.ActivityTy
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	payload, err := generatePayload(actionType, data)
+	payload, err := generatePayload(string(actionType), data)
 	if err != nil {
 		return "", fmt.Errorf("Failed to generate payload: %v", err)
 	}

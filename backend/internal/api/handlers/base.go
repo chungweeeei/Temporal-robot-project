@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	config "github.com/chungweeeei/Temporal-robot-project/internal/config/api"

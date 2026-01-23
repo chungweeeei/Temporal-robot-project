@@ -32,15 +32,15 @@ const statusConfig: Record<WorkflowStatusDef, { label: string; variant: "default
     variant: "destructive",
     className: "text-sm bg-red-500 text-white hover:bg-red-500",
   },
-  Cancelled: {
-    label: "Cancelled",
-    variant: "outline",
-    className: "text-sm border-gray-500 text-gray-600 hover:bg-gray-50",
+  Canceled: {
+    label: "Canceled",
+    variant: "secondary",
+    className: "text-sm bg-gray-500 text-white hover:bg-gray-600",
   },
   Terminated: {
     label: "Terminated",
     variant: "destructive",
-    className: "text-sm bg-orange-500 text-white hover:bg-orange-500",
+    className: "text-sm bg-yellow-400 text-white hover:bg-yellow-500",
   },
 };
 
