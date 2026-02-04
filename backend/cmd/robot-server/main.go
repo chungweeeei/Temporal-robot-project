@@ -14,5 +14,5 @@ func main() {
 
 	http.HandleFunc("/", robotHandler.HandleWS)
 	log.Println("Mock Robot Server started on :9090")
-	http.ListenAndServe("localhost:9090", nil)
+	http.ListenAndServe(":9090", nil)
 }

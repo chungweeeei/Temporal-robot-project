@@ -210,6 +210,40 @@ func (r *MockRobot) HandleHeadAngle(service string, request []byte) pkg.RobotSer
 	}
 }
 
+func (r *MockRobot) HandleDeviceInfo(service string, request []byte) pkg.RobotServiceResponse {
+
+	respData := DeviceInfoResponse{
+		ApiID: RobotDeviceInfoID,
+		Devices: DevicesInfo{
+			Robots: []RobotDevice{
+				{
+					Name: "MockRobot-01",
+				},
+			},
+		},
+		Firmware: FirmwareInfo{
+			FwVersion: "0.5.0",
+			HwVersion: "WS",
+			ModelName: "Mock Model",
+		},
+		Status: StatusDetail{
+			Code:    SUCCESS,
+			Message: "Operation successful",
+		},
+	}
+
+	bytes, _ := json.Marshal(respData)
+	return pkg.RobotServiceResponse{
+		Op:      "service_response",
+		Service: service,
+		Values: struct {
+			Data string `json:"data"`
+		}{
+			Data: string(bytes),
+		},
+	}
+}
+
 func (r *MockRobot) HandleUnknownRequest(unknownId int, service string) pkg.RobotServiceResponse {
 	r.ErrorLog.Println("Received Unknown API ID:", unknownId)
 	respData := BaseResponse{
@@ -301,15 +335,16 @@ func (r *MockRobot) GetRobotStatus() pkg.RobotTopicResponse {
 			Code:    r.State.Mission.Code,
 			Message: r.State.Mission.Message,
 		},
-		Timestamp: time.Now().Format("2006-01-02T15:04:05"),
 	}
 
 	respData := struct {
 		DeviceName   string      `json:"device_name"`
 		DeviceStatus RobotStatus `json:"device_status"`
+		Timestamp    string      `json:"timestamp"`
 	}{
 		DeviceName:   "MockRobot",
 		DeviceStatus: robotStatus,
+		Timestamp:    time.Now().Format("2006-01-02T15:04:05"),
 	}
 
 	bytes, _ := json.Marshal(respData)

@@ -35,10 +35,30 @@ type RobotStatus struct {
 		Code    MissionCode `json:"code"`
 		Message string      `json:"message"`
 	} `json:"mission"`
-	Timestamp string `json:"timestamp"`
 }
 
 type RobotStatusResponse struct {
 	DeviceName   string `json:"device_name"`
 	DevcieStatus string `json:"device_status"`
+	Timestamp    string `json:"timestamp"`
+}
+
+type RobotDevice struct {
+	Name string `json:"name"`
+}
+
+type DevicesInfo struct {
+	Robots []RobotDevice `json:"robots"`
+}
+
+type FirmwareInfo struct {
+	FwVersion string `json:"fw_version"`
+	HwVersion string `json:"hw_version"`
+	ModelName string `json:"model_name"`
+}
+type DeviceInfoResponse struct {
+	ApiID    int          `json:"api_id"`
+	Devices  DevicesInfo  `json:"devices"`
+	Firmware FirmwareInfo `json:"firmware"`
+	Status   StatusDetail `json:"status"`
 }
